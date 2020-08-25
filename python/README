@@ -1,0 +1,11 @@
+./sample_command will run the upload_video.py script
+
+It file that gets uploaded is hardcoded in the sample_command script
+
+To change the account that the file gets uploaded to, delete upload_video.py-oauth2.json and re-run sample_command.  You will be prompted to choose the account where the video should go.
+
+Choose either TelePatriot or TelePatriot-Dev
+
+The stuff in client_secrets.json was created manually by going to https://console.cloud.google.com/apis/credentials
+See the python-test credentials
+

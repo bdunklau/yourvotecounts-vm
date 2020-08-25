@@ -1,0 +1,9 @@
+python3 upload_video.py --file="../videos/CJ6ce9da3d595fa6a5ca119cdc217e2d66.mp4" \
+                       --title="just testing youtube api" \
+                       --description="not sure why the error" \
+                       --keywords="surfing,Santa Cruz" \
+                       --category="22" \
+                       --privacyStatus="unlisted" \
+		       --callbackurl="https://us-central1-telepatriot-bd737.cloudfunctions.net/video_processing_callback?video_node_key=-LndPPrw_SOW7MLSu782" \
+		       --uid="5Ort7M6mrSR3Larinn2hgSOZroe2" \
+		       --noauth_local_webserver
