@@ -18,6 +18,13 @@ app.get('/', function(req, res) {
 	res.send(JSON.stringify({response: 'ok'}))
 })
 
+
+/**
+curl -X POST -H 'Content-Type: application/json' http://34.68.114.174:7000/publish -d '{"twilio_account_sid": "ACce7e5e5cbf309ac4eb81b6579793a1b1", "domain": "twilio.com", "MediaUri": "/v1/Compositions/CJ2601577fa348e97e367f218417e49920/Media", "Ttl": "3600", "CompositionSid": "CJ2601577fa348e97e367f218417e49920", "firebaseServer": "us-central1-yourvotecounts-bd737.cloudfunctions.net", "firebaseUri": "/twilioCallback", "twilio_auth_token": "TOKEN HERE" }'
+
+
+ */
+
 app.post('/publish', function(req, res) {
     // See twilio-telepatriot.js : twilioCallback() : the "composition-available" block
     var twilio_account_sid = req.body.twilio_account_sid
@@ -40,16 +47,16 @@ app.post('/publish', function(req, res) {
 
     // ref:  https://stackoverflow.com/questions/44896984/what-is-way-to-download-big-file-in-nodejs
     progress(request(twilioUrl, {/* parameters */}))
-        .on('progress', function(state) {
+    .on('progress', function(state) {
 	    // call back to /twilioCallback with progress updates
-	    request.post(
-		{url: callbackUrl,
-		 formData:JSON.stringify({state: state})
+	    request.post({
+				url: callbackUrl,
+				formData:JSON.stringify({state: state})
 	        },
-		function(err, httpResponse, body) {
-		    if(err) {
-			res.send(JSON.stringify({error: err, when: 'during progress'}))
-		    }
+		    function(err, httpResponse, body) {
+		        if(err) {
+			        res.send(JSON.stringify({error: err, when: 'during progress'}))
+		        }
 	        }
 	    )
 	})
@@ -59,7 +66,9 @@ app.post('/publish', function(req, res) {
 	    }
 	})
 	.on('end', function() {
+		//res.send(JSON.stringify({response: 'download complete'}))
 	})
+	/*****************/
 	.pipe(
 	    fs.createWriteStream(compositionFile).on('finish', function() {
 				request.post(
@@ -68,7 +77,7 @@ app.post('/publish', function(req, res) {
 					if(err) { res.send(JSON.stringify({error: err, when: 'on finsish'})) }	
 					}
 				)		
-
+                /************
 				var pythonScriptCallback = 'https://'+firebaseServer+'/video_processing_callback?video_node_key='+video_node_key
 
 				// call the python script to upload the file
@@ -83,10 +92,12 @@ app.post('/publish', function(req, res) {
 				shell.exec(cmd, function(code, stdout, stderr) {
 				// don't really care about this function because we passed 'callbackurl' as an arg to the python script
 				})
-				res.send(JSON.stringify({response: 'ok'}))
+				********************/
+				res.send(JSON.stringify({compositionFile: compositionFile}))
 		    }
         )
-    )
+	)
+	/******************/
 	
     //res.send(JSON.stringify({response: 'ok'}))
 
