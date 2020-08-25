@@ -1,3 +1,3 @@
 #!/bin/bash
-cd ~/nodejs
-nohup node index.js &
+nohup node ~/yourvotecounts-vm/nodejs/index.js &
+
