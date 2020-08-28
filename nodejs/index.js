@@ -20,37 +20,49 @@ app.get('/', function(req, res) {
 
 
 /**
+ * THIS CURL COMMAND IS NOT CORRECT.  
+ * SEE formData BELOW FOR THE CORRECT LIST OF FORM PARAMETERS PASSED IN
 curl -X POST -H 'Content-Type: application/json' http://34.68.114.174:7000/publish -d '{"twilio_account_sid": "ACce7e5e5cbf309ac4eb81b6579793a1b1", "domain": "twilio.com", "MediaUri": "/v1/Compositions/CJ2601577fa348e97e367f218417e49920/Media", "Ttl": "3600", "CompositionSid": "CJ2601577fa348e97e367f218417e49920", "firebaseServer": "us-central1-yourvotecounts-bd737.cloudfunctions.net", "firebaseUri": "/twilioCallback", "twilio_auth_token": "TOKEN HERE" }'
-
 
  */
 
-app.post('/publish', function(req, res) {
-    // See twilio-telepatriot.js : twilioCallback() : the "composition-available" block
-    var twilio_account_sid = req.body.twilio_account_sid
-    var twilio_auth_token = req.body.twilio_auth_token
-    var domain = req.body.domain
-    var MediaUri = req.body.MediaUri
-    var Ttl = req.body.Ttl
-    var CompositionSid = req.body.CompositionSid
-    var firebaseServer = req.body.firebaseServer
-    var firebaseUri = req.body.firebaseUri
-    var twilioUrl = 'https://'+twilio_account_sid+':'+twilio_auth_token+'@'+domain+MediaUri+'?Ttl='+Ttl
-    var callbackUrl = 'https://'+firebaseServer+firebaseUri
-    var compositionFile = '/home/bdunklau/videos/'+CompositionSid+'.mp4'
-    var video_title = req.body.video_title
-    var youtube_video_description = req.body.youtube_video_description
-    var keywords = req.body.keywords
-    var privacyStatus = req.body.privacyStatus
-    var video_node_key = req.body.video_node_key
-    var uid = req.body.uid
+ /**
+  * Called from twilio-vodeo.js:twilioCallback()
+  * This is where we download the composition file from twilio
+  * When we're done, we make a post request back to the firebase function twilio-vodeo.js:downloadComplete()
+  */
+app.post('/downloadComposition', function(req, res) {
+	// See twilio-telepatriot.js : twilioCallback() : the "composition-available" block
+	/**
+	 *  this is what we pass to this function from twilio-vodeo.js:twilioCallback()
+	 * 
+        var formData = {
+			RoomSid: roomSid,
+            twilio_account_sid: twilioAccountSid,
+            twilio_auth_token: twilioAuthToken,
+            domain: 'video.twilio.com',
+            MediaUri: req.body.MediaUri,
+            CompositionSid: req.body.CompositionSid,
+            Ttl: 3600,
+            firebase_functions_host: req.query.firebase_functions_host,
+            firebase_function: '/downloadComplete'
+         };
+	 */
+
+    var twilioUrl = `https://${req.body.twilio_account_sid}:${req.body.twilio_auth_token}@${req.body.domain}${req.body.MediaUri}?Ttl=${req.body.Ttl}`
+	var compositionFile = `~/videos/${req.body.CompositionSid}.mp4`
+
 
     // ref:  https://stackoverflow.com/questions/44896984/what-is-way-to-download-big-file-in-nodejs
     progress(request(twilioUrl, {/* parameters */}))
     .on('progress', function(state) {
-	    // call back to /twilioCallback with progress updates
+	    /**
+		 * We COULD call back to a firebase function as the file is downloading but I don't see the value in that
+		 * right now  8/29/20
+		 */
+		/************** 
 	    request.post({
-				url: callbackUrl,
+				url: callbackUrl, // <- /downloadComplete would be the wrong url though
 				formData:JSON.stringify({state: state})
 	        },
 		    function(err, httpResponse, body) {
@@ -58,7 +70,8 @@ app.post('/publish', function(req, res) {
 			        res.send(JSON.stringify({error: err, when: 'during progress'}))
 		        }
 	        }
-	    )
+		)
+		****************/
 	})
 	.on('error', function(err) {
 	    if(err) {
@@ -68,40 +81,76 @@ app.post('/publish', function(req, res) {
 	.on('end', function() {
 		//res.send(JSON.stringify({response: 'download complete'}))
 	})
-	/*****************/
 	.pipe(
 	    fs.createWriteStream(compositionFile).on('finish', function() {
-				request.post(
-				{url: callbackUrl, formData:JSON.stringify({compositionFile: compositionFile, downloadComplete: true})},
+			request.post(
+				{
+					url: `https://${req.body.firebase_functions_host}${req.body.firebase_function}`, 
+					formData:JSON.stringify({compositionFile: compositionFile, 
+											 RoomSid: req.body.RoomSid,
+											 tempEditFolder:  `~/videos/${req.body.CompositionSid}`,
+											 downloadComplete: true})
+				},
 				function(err, httpResponse, body) { 
-					if(err) { res.send(JSON.stringify({error: err, when: 'on finsish'})) }	
-					}
-				)		
-                /************
-				var pythonScriptCallback = 'https://'+firebaseServer+'/video_processing_callback?video_node_key='+video_node_key
+					if(err) { 
+						res.send(JSON.stringify({error: err, when: 'on finsish'})) 
+					}	
+				}
+			)
 
-				// call the python script to upload the file
-				var cmd = 'python3 /home/bdunklau/python/upload_video.py'
-				cmd += ' --file="'+compositionFile+'"'
-				cmd += ' --title="'+video_title+'"'
-				cmd += ' --description="'+youtube_video_description+'"'
-				cmd += ' --keywords="'+keywords+'"'
-				cmd += ' --category="22" --privacyStatus="'+privacyStatus+'"'
-				cmd += ' --callbackurl="'+pythonScriptCallback+'"'
-				cmd += ' --uid="'+uid+'"'
-				shell.exec(cmd, function(code, stdout, stderr) {
-				// don't really care about this function because we passed 'callbackurl' as an arg to the python script
-				})
-				********************/
-				res.send(JSON.stringify({compositionFile: compositionFile}))
-		    }
-        )
+			/************
+			var pythonScriptCallback = 'https://'+firebaseServer+'/video_processing_callback?video_node_key='+video_node_key
+
+			// call the python script to upload the file
+			var cmd = 'python3 /home/bdunklau/python/upload_video.py'
+			cmd += ' --file="'+compositionFile+'"'
+			cmd += ' --title="'+video_title+'"'
+			cmd += ' --description="'+youtube_video_description+'"'
+			cmd += ' --keywords="'+keywords+'"'
+			cmd += ' --category="22" --privacyStatus="'+privacyStatus+'"'
+			cmd += ' --callbackurl="'+pythonScriptCallback+'"'
+			cmd += ' --uid="'+uid+'"'
+			shell.exec(cmd, function(code, stdout, stderr) {
+			// don't really care about this function because we passed 'callbackurl' as an arg to the python script
+			})
+			********************/
+			res.send(JSON.stringify({compositionFile: compositionFile})) // could probably just return {res: 'ok'}
+		})
 	)
-	/******************/
+	
 	
     //res.send(JSON.stringify({response: 'ok'}))
 
-}) // end app.get(/publish)
+}) // end app.get(/downloadComposition)
+
+
+/**
+ * Called from twilio-video.js:downloadVideo()
+ * See the page "Marking Time"
+ * See video-call.component.ts: the start stop pause and resume recording functions
+ */
+app.post('/cutVideo', function(req, res) {
+
+	/*******
+	 form data from twilio-video.js:downloadComplete()
+	 
+        let formData = {
+            compositionFile: compositionFile,
+            tempEditFolder: req.body.tempEditFolder,
+            roomObj: roomObj
+        }
+	******/
+
+	let mkdir = `mkdir ${req.body.tempEditFolder}`
+    let ffmpegCommands = _.map(req.body.roomObj['mark_time'], (timeStuff, index) => {
+		return `ffmpeg -i ${req.body.compositionFile} -ss ${timeStuff.start_recording} -t ${timeStuff.duration} ${req.body.tempEditFolder}/part${index}.mp4`
+	})
+	//let rmdir = `rm -rf ${req.body.tempEditFolder}`
+	let commands = _.flatten( [mkdir, ffmpegCommands/*, rmdir  */] )
+
+
+	
+})
 
 
 app.listen(7000, function() {
