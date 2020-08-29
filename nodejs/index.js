@@ -118,7 +118,7 @@ app.post('/downloadComposition', function(req, res) {
 	)
 	
 	
-    //res.send(JSON.stringify({response: 'ok'}))
+    res.send(JSON.stringify({response: 'ok'}))
 
 }) // end app.get(/downloadComposition)
 
