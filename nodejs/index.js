@@ -33,7 +33,7 @@ app.get('/', function(req, res) {
 app.get('/downloadComposition', function(req, res) {
 
     var twilioUrl = `https://${req.query.twilio_account_sid}:${req.query.twilio_auth_token}@video.twilio.com${req.query.MediaUri}?Ttl=${req.query.Ttl}`
-	var compositionFile = `~/videos/${req.query.CompositionSid}.mp4`
+	var compositionFile = `/home/bdunklau/videos/${req.query.CompositionSid}.mp4`
 
 
     // ref:  https://stackoverflow.com/questions/44896984/what-is-way-to-download-big-file-in-nodejs
