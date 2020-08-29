@@ -82,6 +82,7 @@ app.post('/downloadComposition', function(req, res) {
 	})
 	.pipe(
 	    fs.createWriteStream(compositionFile).on('finish', function() {
+			/**********************
 			request.post(
 				{
 					url: `https://${req.body.firebase_functions_host}${req.body.firebase_function}`, 
@@ -96,29 +97,13 @@ app.post('/downloadComposition', function(req, res) {
 					}	
 				}
 			)
-
-			/************
-			var pythonScriptCallback = 'https://'+firebaseServer+'/video_processing_callback?video_node_key='+video_node_key
-
-			// call the python script to upload the file
-			var cmd = 'python3 /home/bdunklau/python/upload_video.py'
-			cmd += ' --file="'+compositionFile+'"'
-			cmd += ' --title="'+video_title+'"'
-			cmd += ' --description="'+youtube_video_description+'"'
-			cmd += ' --keywords="'+keywords+'"'
-			cmd += ' --category="22" --privacyStatus="'+privacyStatus+'"'
-			cmd += ' --callbackurl="'+pythonScriptCallback+'"'
-			cmd += ' --uid="'+uid+'"'
-			shell.exec(cmd, function(code, stdout, stderr) {
-			// don't really care about this function because we passed 'callbackurl' as an arg to the python script
-			})
-			********************/
+            ***********************/
 			res.send(JSON.stringify({compositionFile: compositionFile})) // could probably just return {res: 'ok'}
 		})
 	)
 	
 	
-    res.send(JSON.stringify({response: 'ok'}))
+    //res.send(JSON.stringify({response: 'ok'}))
 
 }) // end app.get(/downloadComposition)
 
