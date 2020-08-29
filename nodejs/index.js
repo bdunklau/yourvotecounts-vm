@@ -172,5 +172,5 @@ app.post('/cutVideo', function(req, res) {
 
 
 app.listen(7000, function() {
-    console.log('app listeneing on port 7000')
+    console.log('app listening on port 7000')
 })
