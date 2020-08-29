@@ -49,7 +49,7 @@ app.get('/downloadComposition', function(req, res) {
 	})
 	.pipe(
 	    fs.createWriteStream(compositionFile).on('finish', function() {
-			res.send(JSON.stringify({compositionFile: compositionFile})) // could probably just return {res: 'ok'}
+			return res.send(JSON.stringify({compositionFile: compositionFile})) // could probably just return {res: 'ok'}
 		})
 	)
 
