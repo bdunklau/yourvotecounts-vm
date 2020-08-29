@@ -30,7 +30,37 @@ app.get('/', function(req, res) {
   * This is where we download the composition file from twilio
   * When we're done, we make a post request back to the firebase function twilio-vodeo.js:downloadComplete()
   */
-app.post('/downloadComposition', function(req, res) {
+app.get('/downloadComposition', function(req, res) {
+
+    var twilioUrl = `https://${req.query.twilio_account_sid}:${req.query.twilio_auth_token}@video.twilio.com${req.query.MediaUri}?Ttl=${req.query.Ttl}`
+	var compositionFile = `~/videos/${req.query.CompositionSid}.mp4`
+
+
+    // ref:  https://stackoverflow.com/questions/44896984/what-is-way-to-download-big-file-in-nodejs
+    progress(request(twilioUrl, {/* parameters */}))
+    .on('progress', function(state) {
+	})
+	.on('error', function(err) {
+	    if(err) {
+	        res.send(JSON.stringify({error: err, when: 'on error'}))	
+	    }
+	})
+	.on('end', function() {
+	})
+	.pipe(
+	    fs.createWriteStream(compositionFile).on('finish', function() {
+			res.send(JSON.stringify({compositionFile: compositionFile})) // could probably just return {res: 'ok'}
+		})
+	)
+
+}) 
+
+
+
+
+
+
+app.post('/downloadCompositionORIG', function(req, res) {
 	// See twilio-telepatriot.js : twilioCallback() : the "composition-available" block
 	/**
 	 *  this is what we pass to this function from twilio-vodeo.js:twilioCallback()
@@ -106,6 +136,10 @@ app.post('/downloadComposition', function(req, res) {
     //res.send(JSON.stringify({response: 'ok'}))
 
 }) // end app.get(/downloadComposition)
+
+
+
+
 
 
 /**
