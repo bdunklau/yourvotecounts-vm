@@ -22,7 +22,6 @@ app.get('/', function(req, res) {
 /**
  * THIS CURL COMMAND IS NOT CORRECT.  
  * SEE formData BELOW FOR THE CORRECT LIST OF FORM PARAMETERS PASSED IN
-curl -X POST -H 'Content-Type: application/json' http://34.68.114.174:7000/publish -d '{"twilio_account_sid": "ACce7e5e5cbf309ac4eb81b6579793a1b1", "domain": "twilio.com", "MediaUri": "/v1/Compositions/CJ2601577fa348e97e367f218417e49920/Media", "Ttl": "3600", "CompositionSid": "CJ2601577fa348e97e367f218417e49920", "firebaseServer": "us-central1-yourvotecounts-bd737.cloudfunctions.net", "firebaseUri": "/twilioCallback", "twilio_auth_token": "TOKEN HERE" }'
 
  */
 
@@ -39,13 +38,13 @@ app.post('/downloadComposition', function(req, res) {
         var formData = {
 			RoomSid: roomSid,
             twilio_account_sid: twilioAccountSid,
-            twilio_auth_token: twilioAuthToken,
             domain: 'video.twilio.com',
             MediaUri: req.body.MediaUri,
             CompositionSid: req.body.CompositionSid,
             Ttl: 3600,
             firebase_functions_host: req.query.firebase_functions_host,
-            firebase_function: '/downloadComplete'
+			firebase_function: '/downloadComplete',
+            twilio_auth_token: twilioAuthToken
          };
 	 */
 
@@ -149,7 +148,7 @@ app.post('/cutVideo', function(req, res) {
 	let commands = _.flatten( [mkdir, ffmpegCommands/*, rmdir  */] )
 
 
-	
+
 })
 
 
