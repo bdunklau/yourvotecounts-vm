@@ -191,6 +191,12 @@ app.post('/cutVideo', function(req, res) {
 })
 
 
+app.all('/tempDownload', function(req, res) {
+	const file = `/home/bdunklau/videos/CJdf0664dfe3b22c30d201cb7a52e91ec2.mp4-output.mp4`;
+	res.download(file); // Set disposition and send it.
+});
+
+
 app.listen(7000, function() {
     console.log('app listening on port 7000')
 })
