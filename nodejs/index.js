@@ -172,7 +172,7 @@ app.post('/cutVideo', function(req, res) {
 		return `echo "file 'part${index}.mp4'" >> inputs.txt`
 	})
 
-	let concatCommand = `ffmpeg -f concat -i inputs.txt -c copy ${req.body.compositionFile}-output.mp4`
+	let concatCommand = `ffmpeg -f concat -i ${req.body.tempEditFolder}/inputs.txt -c copy ${req.body.compositionFile}-output.mp4`
 
 	//let rmdir = `rm -rf ${req.body.tempEditFolder}`
 	let commands = _.flatten( [mkdir, ffmpegCommands, buildInputsFile, concatCommand/*, rmdir  */] )
