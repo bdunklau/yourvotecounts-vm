@@ -57,9 +57,6 @@ app.get('/downloadComposition', function(req, res) {
 
 
 
-
-
-
 app.post('/downloadCompositionORIG', function(req, res) {
 	// See twilio-telepatriot.js : twilioCallback() : the "composition-available" block
 	/**
@@ -166,8 +163,17 @@ app.post('/cutVideo', function(req, res) {
 	//let rmdir = `rm -rf ${req.body.tempEditFolder}`
 	let commands = _.flatten( [mkdir, ffmpegCommands/*, rmdir  */] )
 
+	let commandRes = []
+	_.each(commands, command => {
+		if (shell.exec(command).code !== 0) {
+		  shell.echo('Error: Git commit failed')
+		  shell.exit(1)
+		  commandRes.push(command)
+		}
 
+	})
 
+    return res.status(200).send(JSON.stringify({commands: commands}))
 })
 
 
