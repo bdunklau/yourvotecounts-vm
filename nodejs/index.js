@@ -160,8 +160,22 @@ app.post('/cutVideo', function(req, res) {
     let ffmpegCommands = _.map(req.body.roomObj['mark_time'], (timeStuff, index) => {
 		return `ffmpeg -i ${req.body.compositionFile} -ss ${timeStuff.start_recording} -t ${timeStuff.duration} ${req.body.tempEditFolder}/part${index}.mp4`
 	})
+	
+	/**
+	 * Creates an inputs.txt file that has this:
+	 * file 'part0.mp4'
+	 * file 'part1.mp4'
+	 * file 'part2.mp4'
+	 * etc
+	 */
+    let buildInputsFile = _.map(req.body.roomObj['mark_time'], (timeStuff, index) => {
+		return `echo "file 'part${index}.mp4'" >> inputs.txt`
+	})
+
+	let concatCommand = `ffmpeg -f concat -i inputs.txt -c copy ${req.body.compositionFile}-output.mp4`
+
 	//let rmdir = `rm -rf ${req.body.tempEditFolder}`
-	let commands = _.flatten( [mkdir, ffmpegCommands/*, rmdir  */] )
+	let commands = _.flatten( [mkdir, ffmpegCommands, buildInputsFile, concatCommand/*, rmdir  */] )
 
 	let commandRes = []
 	_.each(commands, command => {
