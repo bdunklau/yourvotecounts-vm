@@ -169,7 +169,7 @@ app.post('/cutVideo', function(req, res) {
 	 * etc
 	 */
     let buildInputsFile = _.map(req.body.roomObj['mark_time'], (timeStuff, index) => {
-		return `echo "file 'part${index}.mp4'" >> inputs.txt`
+		return `echo "file 'part${index}.mp4'" >> ${req.body.tempEditFolder}/inputs.txt`
 	})
 
 	let concatCommand = `ffmpeg -f concat -i ${req.body.tempEditFolder}/inputs.txt -c copy ${req.body.compositionFile}-output.mp4`
