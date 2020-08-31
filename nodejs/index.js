@@ -208,7 +208,7 @@ app.all('/cutVideo', function(req, res) {
 /**
  * See  https://firebase.google.com/docs/storage/gcp-integration
  */
-app.all('/uploadToFirebaseStorage', function(req, res) {
+app.all('/uploadToFirebaseStorage', async function(req, res) {
 	// Creates a client
 	const storage = new Storage();
 
