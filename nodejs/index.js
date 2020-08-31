@@ -60,90 +60,8 @@ app.get('/downloadComposition', function(req, res) {
 
 
 
-app.post('/downloadCompositionORIG', function(req, res) {
-	// See twilio-telepatriot.js : twilioCallback() : the "composition-available" block
-	/**
-	 *  this is what we pass to this function from twilio-vodeo.js:twilioCallback()
-	 * 
-        var formData = {
-			RoomSid: roomSid,
-            twilio_account_sid: twilioAccountSid,
-            domain: 'video.twilio.com',
-            MediaUri: req.body.MediaUri,
-            CompositionSid: req.body.CompositionSid,
-            Ttl: 3600,
-            firebase_functions_host: req.query.firebase_functions_host,
-			firebase_function: '/downloadComplete',
-            twilio_auth_token: twilioAuthToken
-         };
-	 */
-
-    var twilioUrl = `https://${req.body.twilio_account_sid}:${req.body.twilio_auth_token}@${req.body.domain}${req.body.MediaUri}?Ttl=${req.body.Ttl}`
-	var compositionFile = `~/videos/${req.body.CompositionSid}.mp4`
-
-
-    // ref:  https://stackoverflow.com/questions/44896984/what-is-way-to-download-big-file-in-nodejs
-    progress(request(twilioUrl, {/* parameters */}))
-    .on('progress', function(state) {
-	    /**
-		 * We COULD call back to a firebase function as the file is downloading but I don't see the value in that
-		 * right now  8/29/20
-		 */
-		/************** 
-	    request.post({
-				url: callbackUrl, // <- /downloadComplete would be the wrong url though
-				formData:JSON.stringify({state: state})
-	        },
-		    function(err, httpResponse, body) {
-		        if(err) {
-			        res.send(JSON.stringify({error: err, when: 'during progress'}))
-		        }
-	        }
-		)
-		****************/
-	})
-	.on('error', function(err) {
-	    if(err) {
-	        res.send(JSON.stringify({error: err, when: 'on error'}))	
-	    }
-	})
-	.on('end', function() {
-		//res.send(JSON.stringify({response: 'download complete'}))
-	})
-	.pipe(
-	    fs.createWriteStream(compositionFile).on('finish', function() {
-			/**********************
-			request.post(
-				{
-					url: `https://${req.body.firebase_functions_host}${req.body.firebase_function}`, 
-					formData:JSON.stringify({compositionFile: compositionFile, 
-											 RoomSid: req.body.RoomSid,
-											 tempEditFolder:  `~/videos/${req.body.CompositionSid}`,
-											 downloadComplete: true})
-				},
-				function(err, httpResponse, body) { 
-					if(err) { 
-						res.send(JSON.stringify({error: err, when: 'on finsish'})) 
-					}	
-				}
-			)
-            ***********************/
-			res.send(JSON.stringify({compositionFile: compositionFile})) // could probably just return {res: 'ok'}
-		})
-	)
-	
-	
-    //res.send(JSON.stringify({response: 'ok'}))
-
-}) // end app.get(/downloadComposition)
-
-
-
-
-
-
 /**
- * Called from twilio-video.js:downloadVideo()
+ * Called from twilio-video.js:downloadComplete()
  * See the page "Marking Time"
  * See video-call.component.ts: the start stop pause and resume recording functions
  */
@@ -182,7 +100,8 @@ app.all('/cutVideo', function(req, res) {
 	})
 
 	let compFileWithoutMP4 = req.body.compositionFile.substring(0, req.body.compositionFile.indexOf(".mp4"))
-	let concatCommand = `ffmpeg -f concat -i ${req.body.tempEditFolder}/inputs.txt -c copy ${compFileWithoutMP4}-output.mp4`
+	let compositionFile = `${compFileWithoutMP4}-output.mp4`
+	let concatCommand = `ffmpeg -f concat -i ${req.body.tempEditFolder}/inputs.txt -c copy ${compositionFile}`
 
 	let rmdir = `rm -rf ${req.body.tempEditFolder}`
 	let commands = _.flatten( [mkdir, ffmpegCommands, `touch ${req.body.tempEditFolder}/inputs.txt`, buildInputsFile, concatCommand, rmdir] )
@@ -201,12 +120,32 @@ app.all('/cutVideo', function(req, res) {
 
 	})
 
-    return res.status(200).send(JSON.stringify({commands: commands}))
+	let formData = {
+		compositionFile: compositionFile,
+		firebase_functions_host: req.body.firebase_functions_host,
+		cloud_host: req.body.cloud_host  // this host, so we don't have to keep querying config/settings doc
+	}
+
+	request.post(
+		{
+			url: req.body.callbackUrl,  //  firebase function  /cutVideoComplete
+			json: formData // 'json' attr name is KEY HERE, don't use 'form'
+		},
+		function (err, httpResponse, body) {
+			if(err) {
+				return res.status(500).send(JSON.stringify({"error": err, "vm url": vmUrl}));
+			}
+			//console.log(err, body);
+			else return res.status(200).send(JSON.stringify({"result": "ok"}));
+		}
+	);
+
 })
 
 
 /**
- * See  https://firebase.google.com/docs/storage/gcp-integration
+ * Called from /cutVideoComplete
+ * /cutVideoComplete is called by /cutVideo, which is just above this function
  */
 app.all('/uploadToFirebaseStorage', async function(req, res) {
 	// Creates a client
@@ -216,9 +155,8 @@ app.all('/uploadToFirebaseStorage', async function(req, res) {
 	});
 
 	let bucketName = 'yourvotecounts-bd737.appspot.com'
-	let filename = '/home/bdunklau/videos/CJb499b3f2ad448d93e01f39cbdcc95219-output.mp4'
 	// Uploads a local file to the bucket
-    await storage.bucket(bucketName).upload(filename, {
+    await storage.bucket(bucketName).upload(req.body.file, {
 		// Support for HTTP requests made with `Accept-Encoding: gzip`
 		gzip: true,
 		// By setting the option `destination`, you can change the name of the
@@ -230,42 +168,64 @@ app.all('/uploadToFirebaseStorage', async function(req, res) {
 		  cacheControl: 'public, max-age=31536000',
 		},
 	});
+	//console.log(`${req.query.file} uploaded to ${bucketName}.`);
+
+
+	let formData = {
+		compositionFile: req.body.file,
+		firebase_functions_host: req.body.firebase_functions_host,
+		cloud_host: req.body.cloud_host  // this host, so we don't have to keep querying config/settings doc
+	}
+
+	request.post(
+		{
+			url: req.body.callbackUrl,
+			json: formData // 'json' attr name is KEY HERE, don't use 'form'
+		},
+		function (err, httpResponse, body) {
+			if(err) {
+				return res.status(500).send(JSON.stringify({"error": err, "vm url": vmUrl}));
+			}
+			//console.log(err, body);
+			else return res.status(200).send(JSON.stringify({"result": "ok"}));
+		}
+	);
   
-	console.log(`${filename} uploaded to ${bucketName}.`);
 
-	return res.status(200).send(JSON.stringify({"result": `uploaded ${filename}`}))
+	//return res.status(200).send(JSON.stringify({"result": `uploaded ${req.query.file}`}))
 
-
-
+})
 
 
+/**
+ * Delete both the original composition file and the -output.mp4 composition file
+ */
+app.all('/deleteVideo', async function(req, res) {
+	
+	if (shell.exec(`rm ${req.body.compositionFile};rm ${origFile}`).code !== 0) {
+		shell.echo(`Error at this command: "${command}"`)
+		shell.exit(1)
+	}
 
-    /***********
-	// Enable Storage
-	var gcs = gcloud.storage({
-		projectId: 'yourvotecounts-bd737',
-		keyFilename: '/home/bdunklau/yourvotecounts-bd737-980dde8224a5.json'
-	});
+	let formData = {
+		filesDeleted: [req.body.compositionFile, origFile],
+		firebase_functions_host: req.body.firebase_functions_host,
+		cloud_host: req.body.cloud_host  // this host, so we don't have to keep querying config/settings doc
+	}
 
-	// Reference an existing bucket.
-    var bucket = gcs.bucket('yourvotecounts-bd737.appspot.com');
-
-    // Upload a local file to a new file to be created in your bucket.
-    bucket.upload('/home/bdunklau/videos/CJb499b3f2ad448d93e01f39cbdcc95219-output.mp4', function(err, file) {
-      if (!err) {
-        // video is now in your bucket.
-        return res.status(200).send(JSON.stringify({"result": "uploaded /home/bdunklau/videos/CJb499b3f2ad448d93e01f39cbdcc95219-output.mp4"}))
-	  }
-	  else res.status(500).send(JSON.stringify({"error": err}))
-	});
-	**************/
-
-	// Download a file from your bucket.
-	/**** 
-    bucket.file('giraffe.jpg').download({
-      destination: '/photos/zoo/giraffe.jpg'
-	}, function(err) {});
-	*****/
+	request.post(
+		{
+			url: req.body.callbackUrl,
+			json: formData // 'json' attr name is KEY HERE, don't use 'form'
+		},
+		function (err, httpResponse, body) {
+			if(err) {
+				return res.status(500).send(JSON.stringify({"error": err, "vm url": vmUrl}));
+			}
+			//console.log(err, body);
+			else return res.status(200).send(JSON.stringify({"result": "ok"}));
+		}
+	);
 })
 
 
