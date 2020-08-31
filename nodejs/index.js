@@ -144,7 +144,7 @@ app.post('/downloadCompositionORIG', function(req, res) {
  * See the page "Marking Time"
  * See video-call.component.ts: the start stop pause and resume recording functions
  */
-app.post('/cutVideo', function(req, res) {
+app.all('/cutVideo', function(req, res) {
 
 	/*******
 	 form data from twilio-video.js:downloadComplete()
