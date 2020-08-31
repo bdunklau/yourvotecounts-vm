@@ -7,8 +7,8 @@ var progress = require('request-progress')
 var fs = require('fs')
 
 var bodyParser = require('body-parser')
-// Require gcloud
-var gcloud = require('google-cloud');
+// Imports the Google Cloud client library
+const {Storage} = require('@google-cloud/storage');
 
 
 // parse application/x-www-form-urlencoded
@@ -209,6 +209,35 @@ app.all('/cutVideo', function(req, res) {
  * See  https://firebase.google.com/docs/storage/gcp-integration
  */
 app.all('/uploadToFirebaseStorage', function(req, res) {
+	// Creates a client
+	const storage = new Storage();
+
+	let bucketName = 'yourvotecounts-bd737.appspot.com'
+	let filename = '/home/bdunklau/videos/CJb499b3f2ad448d93e01f39cbdcc95219-output.mp4'
+	// Uploads a local file to the bucket
+    await storage.bucket(bucketName).upload(filename, {
+		// Support for HTTP requests made with `Accept-Encoding: gzip`
+		gzip: true,
+		// By setting the option `destination`, you can change the name of the
+		// object you are uploading to a bucket.
+		metadata: {
+		  // Enable long-lived HTTP caching headers
+		  // Use only if the contents of the file will never change
+		  // (If the contents will change, use cacheControl: 'no-cache')
+		  cacheControl: 'public, max-age=31536000',
+		},
+	});
+  
+	console.log(`${filename} uploaded to ${bucketName}.`);
+
+	return res.status(200).send(JSON.stringify({"result": `uploaded ${filename}`}))
+
+
+
+
+
+
+    /***********
 	// Enable Storage
 	var gcs = gcloud.storage({
 		projectId: 'yourvotecounts-bd737',
@@ -225,7 +254,8 @@ app.all('/uploadToFirebaseStorage', function(req, res) {
         return res.status(200).send(JSON.stringify({"result": "uploaded /home/bdunklau/videos/CJb499b3f2ad448d93e01f39cbdcc95219-output.mp4"}))
 	  }
 	  else res.status(500).send(JSON.stringify({"error": err}))
-    });
+	});
+	**************/
 
 	// Download a file from your bucket.
 	/**** 
