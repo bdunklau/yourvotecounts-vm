@@ -183,6 +183,10 @@ app.all('/cutVideo', function(req, res) {
 	let rmdir = `rm -rf ${req.body.tempEditFolder}`
 	let commands = _.flatten( [mkdir, ffmpegCommands, `touch ${req.body.tempEditFolder}/inputs.txt`, buildInputsFile, concatCommand, rmdir] )
 
+	_.each(commands, command => {
+		console.log('command: ', command)
+	})
+
 	let commandRes = []
 	_.each(commands, command => {
 		if (shell.exec(command).code !== 0) {
