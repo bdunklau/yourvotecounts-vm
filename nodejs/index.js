@@ -210,7 +210,10 @@ app.all('/cutVideo', function(req, res) {
  */
 app.all('/uploadToFirebaseStorage', async function(req, res) {
 	// Creates a client
-	const storage = new Storage();
+	const storage = new Storage({
+		projectId: 'yourvotecounts-bd737',
+		keyFilename: '/home/bdunklau/yourvotecounts-bd737-980dde8224a5.json'
+	});
 
 	let bucketName = 'yourvotecounts-bd737.appspot.com'
 	let filename = '/home/bdunklau/videos/CJb499b3f2ad448d93e01f39cbdcc95219-output.mp4'
