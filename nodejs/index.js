@@ -222,7 +222,9 @@ app.all('/uploadToFirebaseStorage', function(req, res) {
     bucket.upload('/home/bdunklau/videos/CJb499b3f2ad448d93e01f39cbdcc95219-output.mp4', function(err, file) {
       if (!err) {
         // video is now in your bucket.
-      }
+        return res.status(200).send(JSON.stringify({"result": "uploaded /home/bdunklau/videos/CJb499b3f2ad448d93e01f39cbdcc95219-output.mp4"}))
+	  }
+	  else res.status(500).send(JSON.stringify({"error": err}))
     });
 
 	// Download a file from your bucket.
