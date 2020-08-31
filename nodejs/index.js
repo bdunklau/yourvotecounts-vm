@@ -7,6 +7,9 @@ var progress = require('request-progress')
 var fs = require('fs')
 
 var bodyParser = require('body-parser')
+// Require gcloud
+var gcloud = require('google-cloud');
+
 
 // parse application/x-www-form-urlencoded
 app.use(bodyParser.urlencoded({ extended: false }))
@@ -199,6 +202,35 @@ app.all('/cutVideo', function(req, res) {
 	})
 
     return res.status(200).send(JSON.stringify({commands: commands}))
+})
+
+
+/**
+ * See  https://firebase.google.com/docs/storage/gcp-integration
+ */
+app.all('/uploadToFirebaseStorage', function(req, res) {
+	// Enable Storage
+	var gcs = gcloud.storage({
+		projectId: 'yourvotecounts-bd737',
+		keyFilename: '/home/bdunklau/yourvotecounts-bd737-980dde8224a5.json'
+	});
+
+	// Reference an existing bucket.
+    var bucket = gcs.bucket('yourvotecounts-bd737.appspot.com');
+
+    // Upload a local file to a new file to be created in your bucket.
+    bucket.upload('/home/bdunklau/videos/CJb499b3f2ad448d93e01f39cbdcc95219-output.mp4', function(err, file) {
+      if (!err) {
+        // video is now in your bucket.
+      }
+    });
+
+	// Download a file from your bucket.
+	/**** 
+    bucket.file('giraffe.jpg').download({
+      destination: '/photos/zoo/giraffe.jpg'
+	}, function(err) {});
+	*****/
 })
 
 
