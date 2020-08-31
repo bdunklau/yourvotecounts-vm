@@ -162,6 +162,7 @@ app.all('/cutVideo', function(req, res) {
 
 	let mkdir = `mkdir ${req.body.tempEditFolder}`
 	console.log('req.body = ', req.body);
+	console.log('req.body.roomObj = ', req.body.roomObj);
     let ffmpegCommands = _.map(req.body.roomObj['mark_time'], (timeStuff, index) => {
 		return `ffmpeg -i ${req.body.compositionFile} -ss ${timeStuff.start_recording} -t ${timeStuff.duration} ${req.body.tempEditFolder}/part${index}.mp4`
 	})
