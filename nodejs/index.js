@@ -156,7 +156,7 @@ app.all('/uploadToFirebaseStorage', async function(req, res) {
 
 	let bucketName = 'yourvotecounts-bd737.appspot.com'
 	// Uploads a local file to the bucket
-    await storage.bucket(bucketName).upload(req.body.file, {
+    await storage.bucket(bucketName).upload(req.body.compositionFile, {
 		// Support for HTTP requests made with `Accept-Encoding: gzip`
 		gzip: true,
 		// By setting the option `destination`, you can change the name of the
@@ -168,11 +168,10 @@ app.all('/uploadToFirebaseStorage', async function(req, res) {
 		  cacheControl: 'public, max-age=31536000',
 		},
 	});
-	//console.log(`${req.query.file} uploaded to ${bucketName}.`);
 
 
 	let formData = {
-		compositionFile: req.body.file,
+		compositionFile: req.body.compositionFile,
 		firebase_functions_host: req.body.firebase_functions_host,
 		cloud_host: req.body.cloud_host  // this host, so we don't have to keep querying config/settings doc
 	}
