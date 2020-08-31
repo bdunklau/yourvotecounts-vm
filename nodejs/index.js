@@ -220,7 +220,7 @@ app.all('/deleteVideo', async function(req, res) {
 		},
 		function (err, httpResponse, body) {
 			if(err) {
-				return res.status(500).send(JSON.stringify({"error": err, "vm url": vmUrl}));
+				return res.status(500).send(JSON.stringify({"error": err, "vm url": req.body.callbackUrl}));
 			}
 			//console.log(err, body);
 			else return res.status(200).send(JSON.stringify({"result": "ok"}));
