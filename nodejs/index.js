@@ -181,11 +181,10 @@ app.post('/cutVideo', function(req, res) {
 
 	let commandRes = []
 	_.each(commands, command => {
-		if (shell.exec(command).code !== 0) {
-		  shell.echo(`Error at this command: "${command}"`)
-		  shell.exit(1)
-		  commandRes.push(command)
-		}
+		commandRes.push(command)
+        shell.exec(command, function(code, stdout, stderr) {
+			// do anything here?
+		})
 
 	})
 
