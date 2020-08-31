@@ -61,7 +61,7 @@ app.get('/downloadComposition', function(req, res) {
 
 
 /**
- * Called from twilio-video.js:downloadVideo()
+ * Called from twilio-video.js:downloadComplete()
  * See the page "Marking Time"
  * See video-call.component.ts: the start stop pause and resume recording functions
  */
@@ -100,7 +100,8 @@ app.all('/cutVideo', function(req, res) {
 	})
 
 	let compFileWithoutMP4 = req.body.compositionFile.substring(0, req.body.compositionFile.indexOf(".mp4"))
-	let concatCommand = `ffmpeg -f concat -i ${req.body.tempEditFolder}/inputs.txt -c copy ${compFileWithoutMP4}-output.mp4`
+	let compositionFile = `${compFileWithoutMP4}-output.mp4`
+	let concatCommand = `ffmpeg -f concat -i ${req.body.tempEditFolder}/inputs.txt -c copy ${compositionFile}`
 
 	let rmdir = `rm -rf ${req.body.tempEditFolder}`
 	let commands = _.flatten( [mkdir, ffmpegCommands, `touch ${req.body.tempEditFolder}/inputs.txt`, buildInputsFile, concatCommand, rmdir] )
@@ -119,12 +120,32 @@ app.all('/cutVideo', function(req, res) {
 
 	})
 
-    return res.status(200).send(JSON.stringify({commands: commands}))
+	let formData = {
+		compositionFile: compositionFile,
+		firebase_functions_host: req.body.firebase_functions_host,
+		cloud_host: req.body.cloud_host  // this host, so we don't have to keep querying config/settings doc
+	}
+
+	request.post(
+		{
+			url: req.body.callbackUrl,  //  firebase function  /cutVideoComplete
+			json: formData // 'json' attr name is KEY HERE, don't use 'form'
+		},
+		function (err, httpResponse, body) {
+			if(err) {
+				return res.status(500).send(JSON.stringify({"error": err, "vm url": vmUrl}));
+			}
+			//console.log(err, body);
+			else return res.status(200).send(JSON.stringify({"result": "ok"}));
+		}
+	);
+
 })
 
 
 /**
- * See  https://firebase.google.com/docs/storage/gcp-integration
+ * Called from /cutVideoComplete
+ * /cutVideoComplete is called by /cutVideo, which is just above this function
  */
 app.all('/uploadToFirebaseStorage', async function(req, res) {
 	// Creates a client
@@ -134,9 +155,8 @@ app.all('/uploadToFirebaseStorage', async function(req, res) {
 	});
 
 	let bucketName = 'yourvotecounts-bd737.appspot.com'
-	let filename = '/home/bdunklau/videos/CJb499b3f2ad448d93e01f39cbdcc95219-output.mp4'
 	// Uploads a local file to the bucket
-    await storage.bucket(bucketName).upload(filename, {
+    await storage.bucket(bucketName).upload(req.body.file, {
 		// Support for HTTP requests made with `Accept-Encoding: gzip`
 		gzip: true,
 		// By setting the option `destination`, you can change the name of the
@@ -148,11 +168,64 @@ app.all('/uploadToFirebaseStorage', async function(req, res) {
 		  cacheControl: 'public, max-age=31536000',
 		},
 	});
+	//console.log(`${req.query.file} uploaded to ${bucketName}.`);
+
+
+	let formData = {
+		compositionFile: req.body.file,
+		firebase_functions_host: req.body.firebase_functions_host,
+		cloud_host: req.body.cloud_host  // this host, so we don't have to keep querying config/settings doc
+	}
+
+	request.post(
+		{
+			url: req.body.callbackUrl,
+			json: formData // 'json' attr name is KEY HERE, don't use 'form'
+		},
+		function (err, httpResponse, body) {
+			if(err) {
+				return res.status(500).send(JSON.stringify({"error": err, "vm url": vmUrl}));
+			}
+			//console.log(err, body);
+			else return res.status(200).send(JSON.stringify({"result": "ok"}));
+		}
+	);
   
-	console.log(`${filename} uploaded to ${bucketName}.`);
 
-	return res.status(200).send(JSON.stringify({"result": `uploaded ${filename}`}))
+	//return res.status(200).send(JSON.stringify({"result": `uploaded ${req.query.file}`}))
 
+})
+
+
+/**
+ * Delete both the original composition file and the -output.mp4 composition file
+ */
+app.all('/deleteVideo', async function(req, res) {
+	
+	if (shell.exec(`rm ${req.body.compositionFile};rm ${origFile}`).code !== 0) {
+		shell.echo(`Error at this command: "${command}"`)
+		shell.exit(1)
+	}
+
+	let formData = {
+		filesDeleted: [req.body.compositionFile, origFile],
+		firebase_functions_host: req.body.firebase_functions_host,
+		cloud_host: req.body.cloud_host  // this host, so we don't have to keep querying config/settings doc
+	}
+
+	request.post(
+		{
+			url: req.body.callbackUrl,
+			json: formData // 'json' attr name is KEY HERE, don't use 'form'
+		},
+		function (err, httpResponse, body) {
+			if(err) {
+				return res.status(500).send(JSON.stringify({"error": err, "vm url": vmUrl}));
+			}
+			//console.log(err, body);
+			else return res.status(200).send(JSON.stringify({"result": "ok"}));
+		}
+	);
 })
 
 
