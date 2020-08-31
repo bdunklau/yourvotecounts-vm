@@ -145,6 +145,10 @@ app.post('/downloadCompositionORIG', function(req, res) {
  * See video-call.component.ts: the start stop pause and resume recording functions
  */
 app.all('/cutVideo', function(req, res) {
+	if(req.query.test) {
+		res.status(200).send(JSON.stringify({"test": req.query.test}))
+		return
+	}
 
 	/*******
 	 form data from twilio-video.js:downloadComplete()
