@@ -201,6 +201,7 @@ app.all('/uploadToFirebaseStorage', async function(req, res) {
  */
 app.all('/deleteVideo', async function(req, res) {
 	
+	let origFile = req.body.compositionFile.substring(0, req.body.compositionFile.indexOf("-output"))+".mp4"
 	if (shell.exec(`rm ${req.body.compositionFile};rm ${origFile}`).code !== 0) {
 		shell.echo(`Error at this command: "${command}"`)
 		shell.exit(1)
