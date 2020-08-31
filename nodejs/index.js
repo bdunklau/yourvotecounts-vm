@@ -203,7 +203,7 @@ app.all('/cutVideo', function(req, res) {
 
 
 app.all('/tempDownload', function(req, res) {
-	const file = `/home/bdunklau/videos/CJdf0664dfe3b22c30d201cb7a52e91ec2.mp4-output.mp4`;
+	const file = `/home/bdunklau/videos/${req.query.file}`;
 	res.download(file); // Set disposition and send it.
 });
 
