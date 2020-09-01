@@ -33,7 +33,7 @@ app.get('/', function(req, res) {
   * This is where we download the composition file from twilio
   * When we're done, we make a post request back to the firebase function twilio-vodeo.js:downloadComplete()
   */
-app.get('/downloadComposition', function(req, res) {
+app.post('/downloadComposition', function(req, res) {
 
 	/**
 	 Passed in from twilio-video.js:twilioCallback() - 'composition-available' section
