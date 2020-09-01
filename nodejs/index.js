@@ -71,6 +71,7 @@ app.post('/downloadComposition', function(req, res) {
 
 			let formData = {
 				compositionFile: compositionFile,
+				CompositionSid: req.body.CompositionSid,
 				RoomSid: req.body.RoomSid,
 				tempEditFolder:  `/home/bdunklau/videos/${req.body.CompositionSid}`,
 				downloadComplete: true
@@ -78,7 +79,7 @@ app.post('/downloadComposition', function(req, res) {
 
 			request.post(
 				{
-					url: `https://${req.body.firebase_functions_host}${req.body.firebase_function}`,  //  firebase function  /cutVideoComplete
+					url: `https://${req.body.firebase_functions_host}${req.body.firebase_function}`,  //  firebase function  /downloadComplete
 					json: formData // 'json' attr name is KEY HERE, don't use 'form'
 				},
 				function (err, httpResponse, body) {
@@ -113,9 +114,13 @@ app.all('/cutVideo', function(req, res) {
 	 form data from twilio-video.js:downloadComplete()
 	 
         let formData = {
-            compositionFile: compositionFile,
+            compositionFile: req.body.compositionFile,
             tempEditFolder: req.body.tempEditFolder,
-            roomObj: roomObj
+            CompositionSid:  req.body.CompositionSid,
+            roomObj: roomDoc.data(),
+            firebase_functions_host: settingsObj.data().firebase_functions_host,
+            cloud_host: settingsObj.data().cloud_host,
+            callbackUrl: `https://${settingsObj.data().firebase_functions_host}/cutVideoComplete` // just below this function
         }
 	******/
 
@@ -160,6 +165,8 @@ app.all('/cutVideo', function(req, res) {
 
 	let formData = {
 		compositionFile: compositionFile,
+		CompositionSid:  req.body.CompositionSid,
+		RoomSid: req.body.roomObj['RoomSid'],
 		firebase_functions_host: req.body.firebase_functions_host,
 		cloud_host: req.body.cloud_host  // this host, so we don't have to keep querying config/settings doc
 	}
@@ -186,6 +193,21 @@ app.all('/cutVideo', function(req, res) {
  * /cutVideoComplete is called by /cutVideo, which is just above this function
  */
 app.all('/uploadToFirebaseStorage', async function(req, res) {
+    /**
+	 * Passed in from /cutVideoComplete
+	  
+	 
+		let formData = {
+			compositionFile: req.body.compositionFile,
+			CompositionSid:  req.body.CompositionSid,
+			RoomSid: req.body.RoomSid,
+			cloud_host: req.body.cloud_host,
+			callbackUrl: `https://${req.body.firebase_functions_host}/uploadToFirebaseStorageComplete` // just below this function
+		}
+	  
+	 */
+
+
 	// Creates a client
 	const storage = new Storage({
 		projectId: 'yourvotecounts-bd737',
@@ -210,13 +232,15 @@ app.all('/uploadToFirebaseStorage', async function(req, res) {
 
 	let formData = {
 		compositionFile: req.body.compositionFile,
+		CompositionSid:  req.body.CompositionSid,
+		RoomSid: req.body.RoomSid,
 		firebase_functions_host: req.body.firebase_functions_host,
 		cloud_host: req.body.cloud_host  // this host, so we don't have to keep querying config/settings doc
 	}
 
 	request.post(
 		{
-			url: req.body.callbackUrl,
+			url: req.body.callbackUrl,  // /uploadToFirebaseStorageComplete
 			json: formData // 'json' attr name is KEY HERE, don't use 'form'
 		},
 		function (err, httpResponse, body) {
