@@ -35,8 +35,23 @@ app.get('/', function(req, res) {
   */
 app.get('/downloadComposition', function(req, res) {
 
-    var twilioUrl = `https://${req.query.twilio_account_sid}:${req.query.twilio_auth_token}@video.twilio.com${req.query.MediaUri}?Ttl=${req.query.Ttl}`
-	var compositionFile = `/home/bdunklau/videos/${req.query.CompositionSid}.mp4`
+	/**
+	 Passed in from twilio-video.js:twilioCallback() - 'composition-available' section
+
+
+	"RoomSid": "RMa538d10712f334f4830f7694483f952d", 
+	"twilio_account_sid": "see twilio", 
+	"twilio_auth_token": "see twilio", 
+	"domain": "video.twilio.com", 
+	"MediaUri": "/v1/Compositions/CJ2601577fa348e97e367f218417e49920/Media", 
+	"CompositionSid": "CJ2601577fa348e97e367f218417e49920", 
+	"Ttl": 3600, 
+	"firebase_functions_host": "xxxxxxxxx.cloudfunctions.net", 
+	"firebase_function": "/downloadComplete"
+    */
+
+    var twilioUrl = `https://${req.body.twilio_account_sid}:${req.body.twilio_auth_token}@video.twilio.com${req.body.MediaUri}?Ttl=${req.body.Ttl}`
+	var compositionFile = `/home/bdunklau/videos/${req.body.CompositionSid}.mp4`
 
 
     // ref:  https://stackoverflow.com/questions/44896984/what-is-way-to-download-big-file-in-nodejs
@@ -52,7 +67,30 @@ app.get('/downloadComposition', function(req, res) {
 	})
 	.pipe(
 	    fs.createWriteStream(compositionFile).on('finish', function() {
-			return res.send(JSON.stringify({compositionFile: compositionFile})) // could probably just return {res: 'ok'}
+			//return res.send(JSON.stringify({compositionFile: compositionFile})) // could probably just return {res: 'ok'}
+
+			let formData = {
+				compositionFile: compositionFile,
+				RoomSid: req.body.RoomSid,
+				tempEditFolder:  `/home/bdunklau/videos/${req.body.CompositionSid}`,
+				downloadComplete: true
+			}
+
+			request.post(
+				{
+					url: `https://${req.body.firebase_functions_host}${req.body.firebase_function}`,  //  firebase function  /cutVideoComplete
+					json: formData // 'json' attr name is KEY HERE, don't use 'form'
+				},
+				function (err, httpResponse, body) {
+					if(err) {
+						return res.status(500).send(JSON.stringify({"error": err, "vm url": vmUrl}));
+					}
+					//console.log(err, body);
+					else return res.status(200).send(JSON.stringify({"result": "ok"}));
+				}
+			);
+
+
 		})
 	)
 
