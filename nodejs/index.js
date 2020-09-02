@@ -74,7 +74,7 @@ app.post('/downloadComposition', function(req, res) {
 				CompositionSid: req.body.CompositionSid,
 				RoomSid: req.body.RoomSid,
 				tempEditFolder:  `/home/bdunklau/videos/${req.body.CompositionSid}`,
-				downloadComplete: true
+				downloadComplete: true,
 			}
 
 			request.post(
@@ -120,7 +120,8 @@ app.all('/cutVideo', function(req, res) {
             roomObj: roomDoc.data(),
             firebase_functions_host: settingsObj.data().firebase_functions_host,
             cloud_host: settingsObj.data().cloud_host,
-            callbackUrl: `https://${settingsObj.data().firebase_functions_host}/cutVideoComplete` // just below this function
+			callbackUrl: `https://${settingsObj.data().firebase_functions_host}/cutVideoComplete`, // just below this function
+			compositionProgress: roomDoc.data()['compositionProgress']
         }
 	******/
 
@@ -168,7 +169,8 @@ app.all('/cutVideo', function(req, res) {
 		CompositionSid:  req.body.CompositionSid,
 		RoomSid: req.body.roomObj['RoomSid'],
 		firebase_functions_host: req.body.firebase_functions_host,
-		cloud_host: req.body.cloud_host  // this host, so we don't have to keep querying config/settings doc
+		cloud_host: req.body.cloud_host,  // this host, so we don't have to keep querying config/settings doc
+		compositionProgress: req.body.compositionProgress
 	}
 
 	request.post(
@@ -203,6 +205,7 @@ app.all('/uploadToFirebaseStorage', async function(req, res) {
 			RoomSid: req.body.RoomSid,
 			cloud_host: req.body.cloud_host,
 			callbackUrl: `https://${req.body.firebase_functions_host}/uploadToFirebaseStorageComplete` // just below this function
+            compositionProgress: compositionProgress
 		}
 	  
 	 */
@@ -235,7 +238,8 @@ app.all('/uploadToFirebaseStorage', async function(req, res) {
 		CompositionSid:  req.body.CompositionSid,
 		RoomSid: req.body.RoomSid,
 		firebase_functions_host: req.body.firebase_functions_host,
-		cloud_host: req.body.cloud_host  // this host, so we don't have to keep querying config/settings doc
+		cloud_host: req.body.cloud_host,  // this host, so we don't have to keep querying config/settings doc
+		compositionProgress: req.body.compositionProgress
 	}
 
 	request.post(
@@ -270,14 +274,16 @@ app.all('/deleteVideo', async function(req, res) {
 	}
 
 	let formData = {
+		RoomSid: req.body.RoomSid,
 		filesDeleted: [req.body.compositionFile, origFile],
 		firebase_functions_host: req.body.firebase_functions_host,
-		cloud_host: req.body.cloud_host  // this host, so we don't have to keep querying config/settings doc
+		cloud_host: req.body.cloud_host,  // this host, so we don't have to keep querying config/settings doc
+		compositionProgress: req.body.compositionProgress
 	}
 
 	request.post(
 		{
-			url: req.body.callbackUrl,
+			url: req.body.callbackUrl,  //   /deleteVideoComplete
 			json: formData // 'json' attr name is KEY HERE, don't use 'form'
 		},
 		function (err, httpResponse, body) {
