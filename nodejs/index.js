@@ -204,8 +204,9 @@ app.all('/uploadToFirebaseStorage', async function(req, res) {
 			CompositionSid:  req.body.CompositionSid,
 			RoomSid: req.body.RoomSid,
 			cloud_host: req.body.cloud_host,
-			callbackUrl: `https://${req.body.firebase_functions_host}/uploadToFirebaseStorageComplete` // just below this function
-            compositionProgress: compositionProgress
+			firebase_functions_host: req.body.firebase_functions_host,
+			callbackUrl: `https://${req.body.firebase_functions_host}/uploadToFirebaseStorageComplete`, // just below this function
+			compositionProgress: compositionProgress
 		}
 	  
 	 */
@@ -266,6 +267,22 @@ app.all('/uploadToFirebaseStorage', async function(req, res) {
  * Delete both the original composition file and the -output.mp4 composition file
  */
 app.all('/deleteVideo', async function(req, res) {
+
+	/**
+	  Passed in from /uploadToFirebaseStorageComplete 
+
+
+	  
+		let formData = {
+			RoomSid: req.body.RoomSid,
+			compositionFile: req.body.compositionFile,
+			cloud_host: req.body.cloud_host,
+			firebase_functions_host: req.body.firebase_functions_host,
+			callbackUrl: `https://${req.body.firebase_functions_host}/deleteVideoComplete`, // just below this function
+			compositionProgress: compositionProgress
+		}
+
+	 */
 	
 	let origFile = req.body.compositionFile.substring(0, req.body.compositionFile.indexOf("-output"))+".mp4"
 	if (shell.exec(`rm ${req.body.compositionFile};rm ${origFile}`).code !== 0) {
