@@ -287,10 +287,10 @@ app.all('/deleteVideo', async function(req, res) {
 			json: formData // 'json' attr name is KEY HERE, don't use 'form'
 		},
 		function (err, httpResponse, body) {
+			console.log(`AFTER GOING TO ${req.body.callbackUrl}:  `, err, body);
 			if(err) {
 				return res.status(500).send(JSON.stringify({"error": err, "vm url": req.body.callbackUrl}));
 			}
-			//console.log(err, body);
 			else return res.status(200).send(JSON.stringify({"result": "ok"}));
 		}
 	);
