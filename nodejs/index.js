@@ -323,7 +323,7 @@ app.all('/download', function(req, res) {
 });
 
 
-app.all('/makepublic', function(req, res) {
+app.all('/makepublic', async function(req, res) {
 	
 	// Creates a client
 	const storage = new Storage({
