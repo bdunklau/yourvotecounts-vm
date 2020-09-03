@@ -100,8 +100,6 @@ app.post('/downloadComposition', function(req, res) {
 
 
 /**
- * UPDATE 9/2/20 - THIS IS THE LAST FUNCTION WE'RE CALLING ON THE VM - WE ARE GOING TO SERVE UP VIDEOS FROM THE VM SINCE FIREBASE STORAGE ISN'T PLAYING NICELY WITH IPHONE/SAFARI
- * 
  * Called from twilio-video.js:downloadComplete()
  * See the page "Marking Time"
  * See video-call.component.ts: the start stop pause and resume recording functions
@@ -193,13 +191,11 @@ app.all('/cutVideo', function(req, res) {
 
 
 /**
- * DON'T DO THIS ANYMORE - WE ARE GOING TO SERVE UP VIDEOS FROM THE VM SINCE FIREBASE STORAGE ISN'T PLAYING NICELY WITH IPHONE/SAFARI
- * 
  * Called from /cutVideoComplete
  * /cutVideoComplete is called by /cutVideo, which is just above this function
  */
 app.all('/uploadToFirebaseStorage', async function(req, res) {
-	if(true) return res.status(200).send(JSON.stringify({"result": "ok"})); // short-circuit this whole function
+	//DON'T short-circuit anymore   if(true) return res.status(200).send(JSON.stringify({"result": "ok"})); // short-circuit this whole function
 
     /**
 	 * Passed in from /cutVideoComplete
@@ -270,12 +266,10 @@ app.all('/uploadToFirebaseStorage', async function(req, res) {
 
 
 /**
- * DON'T DO THIS ANYMORE - WE ARE GOING TO SERVE UP VIDEOS FROM THE VM SINCE FIREBASE STORAGE ISN'T PLAYING NICELY WITH IPHONE/SAFARI
- * 
  * Delete both the original composition file and the -output.mp4 composition file
  */
 app.all('/deleteVideo', async function(req, res) {
-	if(true) return res.status(200).send(JSON.stringify({"result": "ok"})); // short-circuit this whole function
+	//DON'T short-circuit anymore   if(true) return res.status(200).send(JSON.stringify({"result": "ok"})); // short-circuit this whole function
 
 	/**
 	  Passed in from /uploadToFirebaseStorageComplete 
@@ -327,6 +321,22 @@ app.all('/download', function(req, res) {
 	const file = `/home/bdunklau/videos/${req.query.file}`;
 	res.download(file); // Set disposition and send it.
 });
+
+
+app.all('/makepublic', function(req, res) {
+	
+	// Creates a client
+	const storage = new Storage({
+		projectId: 'yourvotecounts-bd737',
+		keyFilename: '/home/bdunklau/yourvotecounts-bd737-980dde8224a5.json'
+	});
+
+	let bucketName = 'yourvotecounts-bd737.appspot.com'
+	let filename = 'CJ67fdd76b78de2a9ec31700019014f5e8-output.mp4'
+	await storage.bucket(bucketName).file(filename).makePublic();
+
+	return res.status(200).send(`now public: ${filename}`)
+})
 
 
 app.listen(7000, function() {
