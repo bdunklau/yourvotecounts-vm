@@ -50,7 +50,8 @@ app.post('/downloadComposition', function(req, res) {
 	"firebase_function": "/downloadComplete"
     */
 
-    var twilioUrl = `https://${req.body.twilio_account_sid}:${req.body.twilio_auth_token}@video.twilio.com${req.body.MediaUri}?Ttl=${req.body.Ttl}`
+    //var twilioUrl = `https://${req.body.twilio_account_sid}:${req.body.twilio_auth_token}@video.twilio.com${req.body.MediaUri}?Ttl=${req.body.Ttl}`
+    var twilioUrl = `https://video.twilio.com${req.body.MediaUri}?Ttl=${req.body.Ttl}`
 	var compositionFile = `/home/bdunklau/videos/${req.body.CompositionSid}.mp4`
 
 
