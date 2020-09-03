@@ -47,7 +47,8 @@ app.post('/downloadComposition', function(req, res) {
 	"CompositionSid": "CJ2601577fa348e97e367f218417e49920", 
 	"Ttl": 3600, 
 	"firebase_functions_host": "xxxxxxxxx.cloudfunctions.net", 
-	"firebase_function": "/downloadComplete"
+	"firebase_function": "/downloadComplete",
+     website_domain_name: req.query.website_domain_name
     */
 
     //var twilioUrl = `https://${req.body.twilio_account_sid}:${req.body.twilio_auth_token}@video.twilio.com${req.body.MediaUri}?Ttl=${req.body.Ttl}`
@@ -76,6 +77,7 @@ app.post('/downloadComposition', function(req, res) {
 				RoomSid: req.body.RoomSid,
 				tempEditFolder:  `/home/bdunklau/videos/${req.body.CompositionSid}`,
 				downloadComplete: true,
+				website_domain_name: req.body.website_domain_name
 			}
 
 			request.post(
@@ -123,7 +125,8 @@ app.all('/cutVideo', function(req, res) {
             firebase_functions_host: settingsObj.data().firebase_functions_host,
             cloud_host: settingsObj.data().cloud_host,
 			callbackUrl: `https://${settingsObj.data().firebase_functions_host}/cutVideoComplete`, // just below this function
-			compositionProgress: roomDoc.data()['compositionProgress']
+			compositionProgress: roomDoc.data()['compositionProgress'],
+			website_domain_name: req.body.website_domain_name
         }
 	******/
 
@@ -173,7 +176,8 @@ app.all('/cutVideo', function(req, res) {
 		phones: req.body.phones,
 		firebase_functions_host: req.body.firebase_functions_host,
 		cloud_host: req.body.cloud_host,  // this host, so we don't have to keep querying config/settings doc
-		compositionProgress: req.body.compositionProgress
+		compositionProgress: req.body.compositionProgress,
+		website_domain_name: req.body.website_domain_name
 	}
 
 	request.post(
@@ -212,7 +216,8 @@ app.all('/uploadToFirebaseStorage', async function(req, res) {
 			cloud_host: req.body.cloud_host,
 			firebase_functions_host: req.body.firebase_functions_host,
 			callbackUrl: `https://${req.body.firebase_functions_host}/uploadToFirebaseStorageComplete`, // just below this function
-			compositionProgress: compositionProgress
+			compositionProgress: compositionProgress,
+            website_domain_name: req.body.website_domain_name
 		}
 	  
 	 */
@@ -247,7 +252,8 @@ app.all('/uploadToFirebaseStorage', async function(req, res) {
 		phones: req.body.phones,
 		firebase_functions_host: req.body.firebase_functions_host,
 		cloud_host: req.body.cloud_host,  // this host, so we don't have to keep querying config/settings doc
-		compositionProgress: req.body.compositionProgress
+		compositionProgress: req.body.compositionProgress,
+        website_domain_name: req.body.website_domain_name
 	}
 
 	request.post(
@@ -290,7 +296,8 @@ app.all('/deleteVideo', async function(req, res) {
 			cloud_host: req.body.cloud_host,
 			firebase_functions_host: req.body.firebase_functions_host,
 			callbackUrl: `https://${req.body.firebase_functions_host}/deleteVideoComplete`, // just below this function
-			compositionProgress: compositionProgress
+			compositionProgress: compositionProgress,
+            website_domain_name: req.body.website_domain_name
 		}
 
 	 */
@@ -309,7 +316,8 @@ app.all('/deleteVideo', async function(req, res) {
 		filesDeleted: [req.body.compositionFile, origFile],
 		firebase_functions_host: req.body.firebase_functions_host,
 		cloud_host: req.body.cloud_host,  // this host, so we don't have to keep querying config/settings doc
-		compositionProgress: req.body.compositionProgress
+		compositionProgress: req.body.compositionProgress,
+        website_domain_name: req.body.website_domain_name
 	}
 
 	request.post(
