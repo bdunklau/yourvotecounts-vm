@@ -46,8 +46,8 @@ app.post('/downloadComposition', function(req, res) {
      website_domain_name: req.query.website_domain_name
     */
 
-    //var twilioUrl = `https://${req.body.twilio_account_sid}:${req.body.twilio_auth_token}@video.twilio.com${req.body.MediaUri}?Ttl=${req.body.Ttl}`
-    var twilioUrl = `https://video.twilio.com${req.body.MediaUri}?Ttl=${req.body.Ttl}`
+    var twilioUrl = `https://${req.body.twilio_account_sid}:${req.body.twilio_auth_token}@video.twilio.com${req.body.MediaUri}?Ttl=${req.body.Ttl}`
+    //var twilioUrl = `https://video.twilio.com${req.body.MediaUri}?Ttl=${req.body.Ttl}`
 	var compositionFile = `/home/bdunklau/videos/${req.body.CompositionSid}.mp4`
 
 
@@ -239,6 +239,8 @@ app.all('/uploadToFirebaseStorage', async function(req, res) {
 		  cacheControl: 'public, max-age=31536000',
 		},
 	});
+
+	await storage.bucket(bucketName).file(req.body.compositionFile).makePublic();
 
 
 	let formData = {
