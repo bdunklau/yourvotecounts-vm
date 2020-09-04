@@ -22,11 +22,6 @@ app.get('/', function(req, res) {
 })
 
 
-/**
- * THIS CURL COMMAND IS NOT CORRECT.  
- * SEE formData BELOW FOR THE CORRECT LIST OF FORM PARAMETERS PASSED IN
-
- */
 
  /**
   * Called from twilio-vodeo.js:twilioCallback()
@@ -87,7 +82,8 @@ app.post('/downloadComposition', function(req, res) {
 				},
 				function (err, httpResponse, body) {
 					if(err) {
-						return res.status(500).send(JSON.stringify({"error": err, "vm url": vmUrl}));
+						// can only send back 2xx responses because of twilio
+						return res.status(200).send(JSON.stringify({"error": err, "vm url": `https://${req.body.firebase_functions_host}${req.body.firebase_function}`}));
 					}
 					//console.log(err, body);
 					else return res.status(200).send(JSON.stringify({"result": "ok"}));
@@ -356,6 +352,66 @@ app.all('/makepublic', async function(req, res) {
 
 	return res.status(200).send(`now public: ${filename}`)
 })
+
+
+
+
+
+
+
+
+
+
+app.post('/downloadTwilio', function(req, res) {
+
+	/**
+	 Passed in from twilio-video.js:twilioCallback() - 'composition-available' section
+
+
+	"RoomSid": "RMa538d10712f334f4830f7694483f952d", 
+	"twilio_account_sid": "see twilio", 
+	"twilio_auth_token": "see twilio", 
+	"domain": "video.twilio.com", 
+	"MediaUri": "/v1/Compositions/CJ2601577fa348e97e367f218417e49920/Media", 
+	"CompositionSid": "CJ2601577fa348e97e367f218417e49920", 
+	"Ttl": 3600, 
+	"firebase_functions_host": "xxxxxxxxx.cloudfunctions.net", 
+	"firebase_function": "/downloadComplete",
+     website_domain_name: req.query.website_domain_name
+    */
+
+    //var twilioUrl = `https://${req.body.twilio_account_sid}:${req.body.twilio_auth_token}@video.twilio.com${req.body.MediaUri}?Ttl=${req.body.Ttl}`
+    var twilioUrl = `https://video.twilio.com${req.body.MediaUri}?Ttl=${req.body.Ttl}`
+	var compositionFile = `/home/bdunklau/videos/${req.body.CompositionSid}.mp4`
+
+
+    // ref:  https://stackoverflow.com/questions/44896984/what-is-way-to-download-big-file-in-nodejs
+    progress(request(twilioUrl, {/* parameters */}))
+    .on('progress', function(state) {
+	})
+	.on('error', function(err) {
+	    if(err) {
+	        res.send(JSON.stringify({error: err, when: 'on error'}))	
+	    }
+	})
+	.on('end', function() {
+	})
+	.pipe(
+	    fs.createWriteStream(compositionFile).on('finish', function() {
+			return res.send(JSON.stringify({compositionFile: compositionFile})) // could probably just return {res: 'ok'}
+
+		})
+	)
+
+}) 
+
+
+
+
+
+
+
+
 
 
 app.listen(7000, function() {
