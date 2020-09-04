@@ -240,7 +240,7 @@ app.all('/uploadToFirebaseStorage', async function(req, res) {
 		},
 	});
 
-	await storage.bucket(bucketName).file(req.body.compositionFile).makePublic();
+	await storage.bucket(bucketName).file(req.body.CompositionSid+'-output.mp4').makePublic();
 
 
 	let formData = {
