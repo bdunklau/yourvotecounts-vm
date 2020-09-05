@@ -242,12 +242,22 @@ app.all('/uploadToFirebaseStorage', async function(req, res) {
 
 	await storage.bucket(bucketName).file(req.body.CompositionSid+'-output.mp4').makePublic();
 
+	// create signed url...
+	// These options will allow temporary read access to the file
+	const options = {
+		version: 'v4',
+		action: 'read',
+		expires: Date.now() + 60 * 60 * 1000, // 60 minutes
+    }// Get a v4 signed URL for reading the file
+	const videoUrl = await storage.bucket(bucketName).file(req.body.CompositionSid+'-output.mp4').getSignedUrl(options);
+
 
 	let formData = {
 		compositionFile: req.body.compositionFile,
 		CompositionSid:  req.body.CompositionSid,
 		RoomSid: req.body.RoomSid,
 		phones: req.body.phones,
+		videoUrl: videoUrl,
 		firebase_functions_host: req.body.firebase_functions_host,
 		cloud_host: req.body.cloud_host,  // this host, so we don't have to keep querying config/settings doc
 		compositionProgress: req.body.compositionProgress,
