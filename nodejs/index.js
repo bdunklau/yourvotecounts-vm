@@ -242,6 +242,10 @@ app.all('/uploadToFirebaseStorage', async function(req, res) {
 
 	await storage.bucket(bucketName).file(req.body.CompositionSid+'-output.mp4').makePublic();
 
+	/////////////////////////////////////////////////////////////////////////////////////////////
+	// SIGNED URL'S AREN'T GOOD FOREVER AND THEY STILL DON'T PLAY IN IPHONE'S <video> TAG
+	// SAFARI *WILL* PLAY THE VIDEO SO THAT'S A LITTLE PROGRESS BUT NOT TOTALLY WHAT WE NEED.
+	//
 	// create signed url...
 	// These options will allow temporary read access to the file
 	const options = {
@@ -249,7 +253,7 @@ app.all('/uploadToFirebaseStorage', async function(req, res) {
 		action: 'read',
 		expires: Date.now() + 60 * 60 * 1000, // 60 minutes
     }// Get a v4 signed URL for reading the file
-	const videoUrl = await storage.bucket(bucketName).file(req.body.CompositionSid+'-output.mp4').getSignedUrl(options);
+	//const videoUrl = await storage.bucket(bucketName).file(req.body.CompositionSid+'-output.mp4').getSignedUrl(options);
 
 
 	let formData = {
@@ -257,7 +261,7 @@ app.all('/uploadToFirebaseStorage', async function(req, res) {
 		CompositionSid:  req.body.CompositionSid,
 		RoomSid: req.body.RoomSid,
 		phones: req.body.phones,
-		videoUrl: videoUrl,
+		//videoUrl: videoUrl,
 		firebase_functions_host: req.body.firebase_functions_host,
 		cloud_host: req.body.cloud_host,  // this host, so we don't have to keep querying config/settings doc
 		compositionProgress: req.body.compositionProgress,
