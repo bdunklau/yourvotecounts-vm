@@ -358,59 +358,27 @@ app.all('/makepublic', async function(req, res) {
 
 
 
+app.all('/cors', function(req, res) {
+	// Creates a client
+	const storage = new Storage({
+		projectId: 'yourvotecounts-bd737',
+		keyFilename: '/home/bdunklau/yourvotecounts-bd737-980dde8224a5.json'
+	});
+	
+	let bucketName = 'yourvotecounts-bd737.appspot.com'
+	const bucket = storage.bucket(bucketName);
 
+	const corsConfiguration = [{maxAgeSeconds: 3600}]; // 1 hour
+	bucket.setCorsConfiguration(corsConfiguration);
 
-
-
-
-
-app.post('/downloadTwilio', function(req, res) {
-
-	/**
-	 Passed in from twilio-video.js:twilioCallback() - 'composition-available' section
-
-
-	"RoomSid": "RMa538d10712f334f4830f7694483f952d", 
-	"twilio_account_sid": "see twilio", 
-	"twilio_auth_token": "see twilio", 
-	"domain": "video.twilio.com", 
-	"MediaUri": "/v1/Compositions/CJ2601577fa348e97e367f218417e49920/Media", 
-	"CompositionSid": "CJ2601577fa348e97e367f218417e49920", 
-	"Ttl": 3600, 
-	"firebase_functions_host": "xxxxxxxxx.cloudfunctions.net", 
-	"firebase_function": "/downloadComplete",
-     website_domain_name: req.query.website_domain_name
-    */
-
-    //var twilioUrl = `https://${req.body.twilio_account_sid}:${req.body.twilio_auth_token}@video.twilio.com${req.body.MediaUri}?Ttl=${req.body.Ttl}`
-    var twilioUrl = `https://video.twilio.com${req.body.MediaUri}?Ttl=${req.body.Ttl}`
-	var compositionFile = `/home/bdunklau/videos/${req.body.CompositionSid}.mp4`
-
-
-    // ref:  https://stackoverflow.com/questions/44896984/what-is-way-to-download-big-file-in-nodejs
-    progress(request(twilioUrl, {/* parameters */}))
-    .on('progress', function(state) {
-	})
-	.on('error', function(err) {
-	    if(err) {
-	        res.send(JSON.stringify({error: err, when: 'on error'}))	
-	    }
-	})
-	.on('end', function() {
-	})
-	.pipe(
-	    fs.createWriteStream(compositionFile).on('finish', function() {
-			return res.send(JSON.stringify({compositionFile: compositionFile})) // could probably just return {res: 'ok'}
-
-		})
-	)
-
-}) 
-
-
-
-
-
+	//-
+	// If the callback is omitted, we'll return a Promise.
+	//-
+	bucket.setCorsConfiguration(corsConfiguration).then(function(data) {
+		const apiResponse = data[0];
+		res.status(200).send(apiResponse)
+	});
+})
 
 
 
