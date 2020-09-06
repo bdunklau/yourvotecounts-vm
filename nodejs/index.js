@@ -250,12 +250,13 @@ app.all('/uploadToFirebaseStorage', async function(req, res) {
 	//
 	// create signed url...
 	// These options will allow temporary read access to the file
+	const expiresOn = Date.now() + expiryDays * 24 * 60 * 60 * 1000 // expires in expiryDays days
 	const options = {
 		version: 'v4',
 		action: 'read',
-		expires: Date.now() + expiryDays * 24 * 60 * 60 * 1000, // 60 minutes
+		expires: expiresOn
     }// Get a v4 signed URL for reading the file
-	const videoUrl = await storage.bucket(bucketName).file(req.body.CompositionSid+'-output.mp4').getSignedUrl(options);
+	const signedUrl = await storage.bucket(bucketName).file(req.query.CompositionSid+'-output.mp4').getSignedUrl(options);
 
 
 	let formData = {
@@ -263,7 +264,7 @@ app.all('/uploadToFirebaseStorage', async function(req, res) {
 		CompositionSid:  req.body.CompositionSid,
 		RoomSid: req.body.RoomSid,
 		phones: req.body.phones,
-		videoUrl: videoUrl,
+		videoUrl: signedUrl,
 		firebase_functions_host: req.body.firebase_functions_host,
 		cloud_host: req.body.cloud_host,  // this host, so we don't have to keep querying config/settings doc
 		compositionProgress: req.body.compositionProgress,
@@ -397,6 +398,31 @@ app.all('/cors', function(req, res) {
 })
 
 
+
+app.all('signUrl', function(req, res) {
+	
+	// Creates a client
+	const storage = new Storage({
+		projectId: 'yourvotecounts-bd737',
+		keyFilename: '/home/bdunklau/yourvotecounts-bd737-980dde8224a5.json'
+	});
+	
+	let bucketName = 'yourvotecounts-bd737.appspot.com'
+	const bucket = storage.bucket(bucketName);
+	
+	// create signed url...
+	// These options will allow temporary read access to the file
+	const expiresOn = Date.now() + expiryDays * 24 * 60 * 60 * 1000 // expires in expiryDays days
+	const options = {
+		version: 'v4',
+		action: 'read',
+		expires: expiresOn
+    }// Get a v4 signed URL for reading the file
+	const signedUrl = await storage.bucket(bucketName).file(req.query.CompositionSid+'-output.mp4').getSignedUrl(options);
+
+	res.status(200).send(JSON.stringify({CompositionSid: CompositionSid, signedUrl: signedUrl, expires: new Date(expiresOn)}))
+
+})
 
 
 
