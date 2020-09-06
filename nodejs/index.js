@@ -256,7 +256,10 @@ app.all('/uploadToFirebaseStorage', async function(req, res) {
 		action: 'read',
 		expires: expiresOn
     }// Get a v4 signed URL for reading the file
-	const signedUrl = await storage.bucket(bucketName).file(req.body.CompositionSid+'-output.mp4').getSignedUrl(options);
+	var signedUrl = await storage.bucket(bucketName).file(req.body.CompositionSid+'-output.mp4').getSignedUrl(options);
+    if(signedUrl && signedUrl.length > 0) {
+		signedUrl = signedUrl[0]
+	}
 
 
 	let formData = {
