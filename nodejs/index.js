@@ -11,7 +11,7 @@ var bodyParser = require('body-parser')
 const {Storage} = require('@google-cloud/storage');
 
 // signed url lives for this long
-const expiryDays = 13
+const expiryDays = 7  // 7 is the max
 
 // parse application/x-www-form-urlencoded
 app.use(bodyParser.urlencoded({ extended: false }))
@@ -250,7 +250,7 @@ app.all('/uploadToFirebaseStorage', async function(req, res) {
 	//
 	// create signed url...
 	// These options will allow temporary read access to the file
-	const expiresOn = Date.now() + expiryDays * 24 * 60 * 60 * 1000 // expires in expiryDays days
+	const expiresOn = Date.now() + expiryDays * 24 * 59 * 60 * 1000 // expires in expiryDays days
 	const options = {
 		version: 'v4',
 		action: 'read',
@@ -412,7 +412,7 @@ app.all('/signUrl', async function(req, res) {
 	
 	// create signed url...
 	// These options will allow temporary read access to the file
-	const expiresOn = Date.now() + expiryDays * 24 * 60 * 60 * 1000 // expires in expiryDays days
+	const expiresOn = Date.now() + expiryDays * 24 * 59 * 60 * 1000 // expires in expiryDays days
 	const options = {
 		version: 'v4',
 		action: 'read',
