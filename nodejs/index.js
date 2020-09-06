@@ -399,7 +399,7 @@ app.all('/cors', function(req, res) {
 
 
 
-app.all('signUrl', function(req, res) {
+app.all('signUrl', async function(req, res) {
 	
 	// Creates a client
 	const storage = new Storage({
