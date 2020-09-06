@@ -420,7 +420,7 @@ app.all('/signUrl', async function(req, res) {
     }// Get a v4 signed URL for reading the file
 	const signedUrl = await storage.bucket(bucketName).file(req.query.CompositionSid+'-output.mp4').getSignedUrl(options);
 
-	res.status(200).send(JSON.stringify({CompositionSid: CompositionSid, signedUrl: signedUrl, expires: new Date(expiresOn)}))
+	res.status(200).send(JSON.stringify({CompositionSid: req.query.CompositionSid, signedUrl: signedUrl, expires: new Date(expiresOn)}))
 
 })
 
