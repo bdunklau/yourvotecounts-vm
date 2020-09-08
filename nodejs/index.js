@@ -456,7 +456,7 @@ app.all('/hls', async function(req, res) {
 			//console.log('file is: ', file) // just the file name with no path/dir info
 			let bucketName = 'yourvotecounts-bd737.appspot.com'
 			if(req.query.delete) {
-				await storage.bucket(bucketName).delete(file)
+				await storage.bucket(bucketName).file(file).delete()
 			}
 			else {
 				// Uploads a local file to the bucket
