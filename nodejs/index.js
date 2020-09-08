@@ -5,6 +5,7 @@ var _ = require('lodash')
 var request = require('request')
 var progress = require('request-progress')
 var fs = require('fs')
+const path = require('path')
 
 var bodyParser = require('body-parser')
 // Imports the Google Cloud client library
@@ -426,6 +427,66 @@ app.all('/signUrl', async function(req, res) {
 	res.status(200).send(JSON.stringify({CompositionSid: req.query.CompositionSid, signedUrl: signedUrl, expires: new Date(expiresOn)}))
 
 })
+
+
+app.all('/hls', async function(req, res) {
+	// req.query.dir,  req.query.CompositionSid
+	// upload all .ts files
+	// upload the .m3u8 file
+	// set them to public
+
+	
+	// Creates a client
+	const storage = new Storage({
+		projectId: 'yourvotecounts-bd737',
+		keyFilename: '/home/bdunklau/yourvotecounts-bd737-980dde8224a5.json'
+	});
+
+
+
+
+
+	fs.readdir(req.query.dir, function (err, files) {
+		//handling error
+		if (err) {
+			return console.log('Unable to scan directory '+req.query.dir+' because of this error: ' + err);
+		} 
+		//listing all files using forEach
+		files.forEach(function (file) {
+			console.log('file is: ', file)
+			/************
+			let bucketName = 'yourvotecounts-bd737.appspot.com'
+			// Uploads a local file to the bucket
+			await storage.bucket(bucketName).upload(req.body.compositionFile, {
+				// Support for HTTP requests made with `Accept-Encoding: gzip`
+				gzip: true,
+				// By setting the option `destination`, you can change the name of the
+				// object you are uploading to a bucket.
+				metadata: {
+				// Enable long-lived HTTP caching headers
+				// Use only if the contents of the file will never change
+				// (If the contents will change, use cacheControl: 'no-cache')
+				cacheControl: 'public, max-age=31536000',
+				},
+			});
+
+			await storage.bucket(bucketName).file(req.body.CompositionSid+'-output.mp4').makePublic();
+                          **********/
+
+
+
+
+
+		}); // end:  files.forEach(function (file)
+	});
+
+
+
+})
+
+
+
+
 
 
 
