@@ -503,7 +503,7 @@ app.all('/newfolder', async function(req, res) {
 	});
 	let bucketName = 'yourvotecounts-bd737.appspot.com'
 	// Uploads a local file to the bucket
-    await storage.bucket(bucketName+"/"+folder+"/").upload(path, {
+    await storage.bucket(bucketName).upload(path, {
 		destination: folder+"/"+file,
 		// Support for HTTP requests made with `Accept-Encoding: gzip`
 		gzip: true,
