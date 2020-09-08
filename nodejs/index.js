@@ -454,9 +454,10 @@ app.all('/hls', async function(req, res) {
 		//listing all files using forEach
 		files.forEach(async function (file) {
 			//console.log('file is: ', file) // just the file name with no path/dir info
-			/************/
+			
 			let bucketName = 'yourvotecounts-bd737.appspot.com'
 			// Uploads a local file to the bucket
+			/*********
 			await storage.bucket(bucketName).upload(req.query.dir+"/"+file, {
 				// Support for HTTP requests made with `Accept-Encoding: gzip`
 				gzip: true,
@@ -469,9 +470,9 @@ app.all('/hls', async function(req, res) {
 					cacheControl: 'public, max-age=31536000',
 				},
 			});
+			**********/
 
-			//await storage.bucket(bucketName).file(req.query.dir+"/"+file).makePublic();
-                          /**********/
+			await storage.bucket(bucketName).file(req.query.dir+"/"+file).makePublic();
 
 
 
