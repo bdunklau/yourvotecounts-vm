@@ -478,9 +478,9 @@ app.all('/hls', async function(req, res) {
 
 
 		}); // end:  files.forEach(function (file)
+		res.status(200).send('files uploaded')
 	});
 
-	res.status(200).send('temporary ok')
 
 
 })
