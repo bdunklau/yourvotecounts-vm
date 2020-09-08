@@ -470,7 +470,7 @@ app.all('/hls', async function(req, res) {
 				},
 			});
 
-			await storage.bucket(bucketName).file(req.query.dir+"/"+file).makePublic();
+			//await storage.bucket(bucketName).file(req.query.dir+"/"+file).makePublic();
                           /**********/
 
 
