@@ -514,6 +514,7 @@ app.all('/newfolder', async function(req, res) {
 		  cacheControl: 'public, max-age=31536000',
 		},
 	});
+	res.status(200).send('done')
 })
 
 
