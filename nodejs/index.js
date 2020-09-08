@@ -452,7 +452,7 @@ app.all('/hls', async function(req, res) {
 			return console.log('Unable to scan directory '+req.query.dir+' because of this error: ' + err);
 		} 
 		//listing all files using forEach
-		files.forEach(function (file) {
+		files.forEach(async function (file) {
 			//console.log('file is: ', file) // just the file name with no path/dir info
 			/************/
 			let bucketName = 'yourvotecounts-bd737.appspot.com'
