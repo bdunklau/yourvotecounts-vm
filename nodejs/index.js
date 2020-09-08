@@ -494,7 +494,8 @@ app.all('/hls', async function(req, res) {
 app.all('/newfolder', async function(req, res) {
 
 	let folder = "CJ9b9c4b45bc8f02c9724c0717592073b3"
-	let file = "/home/bdunklau/videos/CJ9b9c4b45bc8f02c9724c0717592073b3.mp4"
+	let file = "CJ9b9c4b45bc8f02c9724c0717592073b3.mp4"
+	let path = "/home/bdunklau/videos/CJ9b9c4b45bc8f02c9724c0717592073b3.mp4"
 	// Creates a client
 	const storage = new Storage({
 		projectId: 'yourvotecounts-bd737',
@@ -502,7 +503,8 @@ app.all('/newfolder', async function(req, res) {
 	});
 	let bucketName = 'yourvotecounts-bd737.appspot.com'
 	// Uploads a local file to the bucket
-    await storage.bucket(bucketName+"/"+folder+"/").upload(file, {
+    await storage.bucket(bucketName+"/"+folder+"/").upload(path, {
+		destination: folder+"/"+file
 		// Support for HTTP requests made with `Accept-Encoding: gzip`
 		gzip: true,
 		// By setting the option `destination`, you can change the name of the
