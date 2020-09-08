@@ -457,7 +457,7 @@ app.all('/hls', async function(req, res) {
 			/************/
 			let bucketName = 'yourvotecounts-bd737.appspot.com'
 			// Uploads a local file to the bucket
-			await storage.bucket(bucketName).upload(req.body.dir+"/"+file, {
+			await storage.bucket(bucketName).upload(req.query.dir+"/"+file, {
 				// Support for HTTP requests made with `Accept-Encoding: gzip`
 				gzip: true,
 				// By setting the option `destination`, you can change the name of the
@@ -470,7 +470,7 @@ app.all('/hls', async function(req, res) {
 				},
 			});
 
-			await storage.bucket(bucketName).file(req.body.dir+"/"+file).makePublic();
+			await storage.bucket(bucketName).file(req.query.dir+"/"+file).makePublic();
                           /**********/
 
 
