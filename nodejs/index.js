@@ -475,6 +475,7 @@ app.all('/deleteVideo', async function(req, res) {
 			CompositionSid:  req.body.CompositionSid,
 			compositionFile: req.body.compositionFile,
 			videoUrl: videoUrl,
+			videoUrlAlt: videoUrlAlt,
 			phones: req.body.phones,
 			cloud_host: req.body.cloud_host,
 			firebase_functions_host: req.body.firebase_functions_host,
@@ -490,6 +491,7 @@ app.all('/deleteVideo', async function(req, res) {
 		deleteThese.push(file.path)
 	})
 	let deleteCommands = _.map(deleteThese, del => `rm ${del}`)
+	deleteCommands.push(`rm -rf /home/bdunklau/videos/${req.body.CompositionSid}-hls`)
 	let asSingleCommand = _.join(deleteCommands, ";")
 
 	if (shell.exec(asSingleCommand).code !== 0) {
@@ -501,6 +503,7 @@ app.all('/deleteVideo', async function(req, res) {
 		RoomSid: req.body.RoomSid,
 		CompositionSid:  req.body.CompositionSid,
 		videoUrl: req.body.videoUrl,
+		videoUrlAlt: req.body.videoUrlAlt,
 		phones: req.body.phones,
 		filesDeleted: deleteThese,
 		firebase_functions_host: req.body.firebase_functions_host,
