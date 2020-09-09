@@ -375,7 +375,7 @@ app.all('/uploadToFirebaseStorage', async function(req, res) {
 	});
 
 	let bucketName = 'yourvotecounts-bd737.appspot.com'
-    _.each(req.body.uploadFiles, file => {
+    _.each(req.body.uploadFiles, async file => {
 		// Uploads a local file to the bucket
 		let folder = req.body.CompositionSid
 		await storage.bucket(bucketName).upload(file.path, {
