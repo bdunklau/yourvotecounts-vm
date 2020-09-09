@@ -232,6 +232,7 @@ app.all('/createHls', async function(req, res) {
 	 */
 
 	let commands = [
+		`cd /home/bdunklau/videos`,
 		`mkdir ${req.body.CompositionSid}-hls`,
 		`cd ${req.body.CompositionSid}-hls`,
 		`ffmpeg -i ${req.body.outputFile}  -c:v h264 -flags +cgop -g 30 -hls_time 10 -hls_list_size 0  -hls_segment_filename '${req.body.CompositionSid}%03d.ts' ${req.body.CompositionSid}.m3u8`
