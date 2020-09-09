@@ -77,6 +77,7 @@ app.post('/downloadComposition', function(req, res) {
 				downloadComplete: true,
 				website_domain_name: req.body.website_domain_name
 			}
+			if(req.body.stop) formData['stop'] = true
 
 			request.post(
 				{
@@ -148,8 +149,8 @@ app.all('/cutVideo', function(req, res) {
 	})
 
 	let compFileWithoutMP4 = req.body.compositionFile.substring(0, req.body.compositionFile.indexOf(".mp4"))
-	let compositionFile = `${compFileWithoutMP4}-output.mp4`
-	let concatCommand = `ffmpeg -f concat -i ${req.body.tempEditFolder}/inputs.txt -c copy ${compositionFile}`
+	let outputFile = `${compFileWithoutMP4}-output.mp4`
+	let concatCommand = `ffmpeg -f concat -i ${req.body.tempEditFolder}/inputs.txt -c copy ${outputFile}`
 
 	let rmdir = `rm -rf ${req.body.tempEditFolder}`
 	let commands = _.flatten( [mkdir, ffmpegCommands, `touch ${req.body.tempEditFolder}/inputs.txt`, buildInputsFile, concatCommand, rmdir] )
@@ -169,15 +170,18 @@ app.all('/cutVideo', function(req, res) {
 	})
 
 	let formData = {
-		compositionFile: compositionFile,
+		compositionFile: req.body.compositionFile,
+		outputFile: outputFile,
 		CompositionSid:  req.body.CompositionSid,
 		RoomSid: req.body.roomObj['RoomSid'],
+		tempEditFolder: req.body.tempEditFolder,
 		phones: req.body.phones,
 		firebase_functions_host: req.body.firebase_functions_host,
 		cloud_host: req.body.cloud_host,  // this host, so we don't have to keep querying config/settings doc
 		compositionProgress: req.body.compositionProgress,
 		website_domain_name: req.body.website_domain_name
 	}
+	if(req.body.stop) formData['stop'] = true
 
 	request.post(
 		{
@@ -186,7 +190,8 @@ app.all('/cutVideo', function(req, res) {
 		},
 		function (err, httpResponse, body) {
 			if(err) {
-				return res.status(500).send(JSON.stringify({"error": err, "vm url": req.body.callbackUrl}));
+				// can't send 500's back - twilio doesn't like that
+				return res.status(200).send(JSON.stringify({"error": err, "vm url": req.body.callbackUrl}));
 			}
 			//console.log(err, body);
 			else return res.status(200).send(JSON.stringify({"result": "ok"}));
@@ -194,6 +199,145 @@ app.all('/cutVideo', function(req, res) {
 	);
 
 })
+
+
+
+app.all('/createHls', async function(req, res) {
+    /**
+	   mkdir CompositionSid-hls
+	   cd CompositionSid-hls
+	   ffmpeg -i /home/bdunklau/videos/CJ9b9c4b45bc8f02c9724c0717592073b3.mp4 -c:v h264 -flags +cgop -g 30 -hls_time 10 -hls_list_size 0  -hls_segment_filename 'CJ9b9c4b45bc8f02c9724c0717592073b3%03d.ts' CJ9b9c4b45bc8f02c9724c0717592073b3.m3u8
+	   loop over each file in CompositionSid-hls
+	   pass the list of .ts, .m3u8 and mp4 files back to the firebase function /createHlsComplete
+	 */
+
+
+	/**
+	 /cutVideoComplete passes in this
+
+		let formData = {
+		    outputFile: req.body.outputFile,
+			compositionFile: req.body.compositionFile,
+			CompositionSid:  req.body.CompositionSid,
+			RoomSid: req.body.RoomSid,
+			tempEditFolder: req.body.tempEditFolder,
+			phones: req.body.phones,
+			cloud_host: req.body.cloud_host,
+			firebase_functions_host: req.body.firebase_functions_host,
+			callbackUrl: `https://${req.body.firebase_functions_host}/createHlsComplete`, // just below this function
+			compositionProgress: compositionProgress,
+			website_domain_name: req.body.website_domain_name
+		}
+	 
+	 */
+
+	let commands = [
+		`mkdir ${req.body.CompositionSid}-hls`,
+		`cd ${req.body.CompositionSid}-hls`,
+		`ffmpeg -i ${req.body.outputFile}  -c:v h264 -flags +cgop -g 30 -hls_time 10 -hls_list_size 0  -hls_segment_filename '${req.body.CompositionSid}%03d.ts' ${req.body.CompositionSid}.m3u8`
+	]
+	let runTogether = _.join(commands, ";")
+
+	if (shell.exec(runTogether).code !== 0) {
+		shell.echo(`Error at this command: "${command}"`)
+		shell.exit(1)
+		commandRes.push(command)
+	}
+
+
+	//////////////////////////////////////////////////////////////////////
+	//  loop over each file in CompositionSid-hls
+	const storage = new Storage({
+		projectId: 'yourvotecounts-bd737',
+		keyFilename: '/home/bdunklau/yourvotecounts-bd737-980dde8224a5.json'
+	});
+
+	let uploadFiles = [{path: req.body.outputFile, name: `${req.body.CompositionSid}-output.mp4`}]
+	let hlsDirectory = `/home/bdunklau/videos/${req.body.CompositionSid}-hls`
+	fs.readdir(hlsDirectory, function (err, files) {
+		//handling error
+		if (err) {
+			return console.log('Unable to scan directory '+req.query.dir+' because of this error: ' + err);
+			// TODO FIXME do something about this err condition
+		} 
+
+		_.each(files, file => {
+			uploadFiles.push({path: `${req.body.tempEditFolder}-hls/${file}`, name: file});
+		})
+
+
+
+		/*******************************
+		//listing all files using forEach
+		files.forEach(async function (file) {
+			//console.log('file is: ', file) // just the file name with no path/dir info
+			let bucketName = 'yourvotecounts-bd737.appspot.com'
+			// Uploads a local file to the bucket
+			let bucketFolder = req.body.CompositionSid
+			await storage.bucket(bucketName).upload(req.query.dir+"/"+file, {
+				destination: bucketFolder+"/"+file,
+				// Support for HTTP requests made with `Accept-Encoding: gzip`
+				gzip: true,
+				// By setting the option `destination`, you can change the name of the
+				// object you are uploading to a bucket.
+				metadata: {
+					// Enable long-lived HTTP caching headers
+					// Use only if the contents of the file will never change
+					// (If the contents will change, use cacheControl: 'no-cache')
+					cacheControl: 'public, max-age=31536000',
+				},
+			});
+
+			await storage.bucket(bucketName).file(file).makePublic();
+
+
+		}); // end:  files.forEach(function (file)
+		************************/
+
+
+		/////////////////////////////////////////////////////////
+		// POST BACK TO /createHlsComplete
+        let formData = {
+		    outputFile: req.body.outputFile,
+			compositionFile: req.body.compositionFile,
+			uploadFiles: uploadFiles,
+			CompositionSid:  req.body.CompositionSid,
+			RoomSid: req.body.RoomSid,
+			tempEditFolder: req.body.tempEditFolder,
+			phones: req.body.phones,
+			firebase_functions_host: req.body.firebase_functions_host,
+			cloud_host: req.body.cloud_host,  // this host, so we don't have to keep querying config/settings doc
+			compositionProgress: req.body.compositionProgress,
+			website_domain_name: req.body.website_domain_name
+		}
+		if(req.body.stop) formData['stop'] = true
+
+		request.post(
+			{
+				url: req.body.callbackUrl,  //  firebase function  /createHlsComplete
+				json: formData // 'json' attr name is KEY HERE, don't use 'form'
+			},
+			function (err, httpResponse, body) {
+				if(err) {
+					// can't send 500's back - twilio doesn't like that
+					return res.status(200).send(JSON.stringify({"error": err, "vm url": req.body.callbackUrl}));
+				}
+				//console.log(err, body);
+				else return res.status(200).send(JSON.stringify({"result": "ok"}));
+			}
+		);
+		
+
+		return res.status(200).send('done')
+
+	}); // fs.readdir()
+	
+	
+
+})
+
+
+
 
 
 /**
@@ -208,15 +352,17 @@ app.all('/uploadToFirebaseStorage', async function(req, res) {
 	  
 	 
 		let formData = {
+			outputFile: req.body.outputFile,
 			compositionFile: req.body.compositionFile,
+			uploadFiles: req.body.uploadFiles,
 			CompositionSid:  req.body.CompositionSid,
 			RoomSid: req.body.RoomSid,
-		    phones: req.body.phones,
-			cloud_host: req.body.cloud_host,
+			tempEditFolder: req.body.tempEditFolder,
+			phones: req.body.phones,
 			firebase_functions_host: req.body.firebase_functions_host,
-			callbackUrl: `https://${req.body.firebase_functions_host}/uploadToFirebaseStorageComplete`, // just below this function
-			compositionProgress: compositionProgress,
-            website_domain_name: req.body.website_domain_name
+			cloud_host: req.body.cloud_host,  // this host, so we don't have to keep querying config/settings doc
+			compositionProgress: req.body.compositionProgress,
+			website_domain_name: req.body.website_domain_name
 		}
 	  
 	 */
@@ -229,21 +375,30 @@ app.all('/uploadToFirebaseStorage', async function(req, res) {
 	});
 
 	let bucketName = 'yourvotecounts-bd737.appspot.com'
-	// Uploads a local file to the bucket
-    await storage.bucket(bucketName).upload(req.body.compositionFile, {
-		// Support for HTTP requests made with `Accept-Encoding: gzip`
-		gzip: true,
-		// By setting the option `destination`, you can change the name of the
-		// object you are uploading to a bucket.
-		metadata: {
-		  // Enable long-lived HTTP caching headers
-		  // Use only if the contents of the file will never change
-		  // (If the contents will change, use cacheControl: 'no-cache')
-		  cacheControl: 'public, max-age=31536000',
-		},
-	});
+    _.each(req.body.uploadFiles, file => {
+		// Uploads a local file to the bucket
+		let folder = req.body.CompositionSid
+		await storage.bucket(bucketName).upload(file.path, {
+			destination: folder+"/"+file.name,
+			// Support for HTTP requests made with `Accept-Encoding: gzip`
+			gzip: true,
+			// By setting the option `destination`, you can change the name of the
+			// object you are uploading to a bucket.
+			metadata: {
+				// Enable long-lived HTTP caching headers
+				// Use only if the contents of the file will never change
+				// (If the contents will change, use cacheControl: 'no-cache')
+				cacheControl: 'public, max-age=31536000',
+			},
+		});
 
-	await storage.bucket(bucketName).file(req.body.CompositionSid+'-output.mp4').makePublic();
+		await storage.bucket(bucketName).file(file.name).makePublic();
+
+	})
+
+
+
+
 
 	/////////////////////////////////////////////////////////////////////////////////////////////
 	// SIGNED URL'S AREN'T GOOD FOREVER AND THEY STILL DON'T PLAY IN IPHONE'S <video> TAG
@@ -251,6 +406,7 @@ app.all('/uploadToFirebaseStorage', async function(req, res) {
 	//
 	// create signed url...
 	// These options will allow temporary read access to the file
+	/******************************** DON'T THINK WE NEED SIGNED URL'S
 	const expiresOn = Date.now() + expiryDays * 24 * 59 * 60 * 1000 // expires in expiryDays days
 	const options = {
 		version: 'v4',
@@ -261,19 +417,23 @@ app.all('/uploadToFirebaseStorage', async function(req, res) {
     if(signedUrl && signedUrl.length > 0) {
 		signedUrl = signedUrl[0]
 	}
+	***********************************/
 
 
 	let formData = {
-		compositionFile: req.body.compositionFile,
+		outputFile: req.body.outputFile,
+		uploadFiles: req.body.uploadFiles,
+		compositionFile: req.body.compositionFile, 
 		CompositionSid:  req.body.CompositionSid,
 		RoomSid: req.body.RoomSid,
 		phones: req.body.phones,
-		videoUrl: signedUrl,
+		//videoUrl: signedUrl,
 		firebase_functions_host: req.body.firebase_functions_host,
 		cloud_host: req.body.cloud_host,  // this host, so we don't have to keep querying config/settings doc
 		compositionProgress: req.body.compositionProgress,
         website_domain_name: req.body.website_domain_name
 	}
+	if(req.body.stop) formData['stop'] = true
 
 	request.post(
 		{
@@ -282,7 +442,8 @@ app.all('/uploadToFirebaseStorage', async function(req, res) {
 		},
 		function (err, httpResponse, body) {
 			if(err) {
-				return res.status(500).send(JSON.stringify({"error": err, "vm url": req.body.callbackUrl}));
+				// can't send 500's back - twilio doesn't like that
+				return res.status(200).send(JSON.stringify({"error": err, "vm url": req.body.callbackUrl}));
 			}
 			//console.log(err, body);
 			else return res.status(200).send(JSON.stringify({"result": "ok"}));
@@ -304,26 +465,33 @@ app.all('/deleteVideo', async function(req, res) {
 	/**
 	  Passed in from /uploadToFirebaseStorageComplete 
 
-
 	  
 		let formData = {
+			outputFile: req.body.outputFile,
+			uploadFiles: req.body.uploadFiles,
 			RoomSid: req.body.RoomSid,
-            CompositionSid:  req.body.CompositionSid,
+			CompositionSid:  req.body.CompositionSid,
 			compositionFile: req.body.compositionFile,
-            videoUrl: videoUrl,
-		    phones: req.body.phones,
+			videoUrl: videoUrl,
+			phones: req.body.phones,
 			cloud_host: req.body.cloud_host,
 			firebase_functions_host: req.body.firebase_functions_host,
 			callbackUrl: `https://${req.body.firebase_functions_host}/deleteVideoComplete`, // just below this function
 			compositionProgress: compositionProgress,
-            website_domain_name: req.body.website_domain_name
+			website_domain_name: req.body.website_domain_name
 		}
 
 	 */
 	
-	let origFile = req.body.compositionFile.substring(0, req.body.compositionFile.indexOf("-output"))+".mp4"
-	if (shell.exec(`rm ${req.body.compositionFile};rm ${origFile}`).code !== 0) {
-		shell.echo(`Error at this command: "${command}"`)
+	let deleteThese = [req.body.compositionFile]
+    _.each(req.body.uploadFiles, file => {
+		deleteThese.push(file.path)
+	})
+	let deleteCommands = _.map(deleteThese, del => `rm ${del}`)
+	let asSingleCommand = _.join(deleteCommands, ";")
+
+	if (shell.exec(asSingleCommand).code !== 0) {
+		shell.echo(`Error at this command: "${asSingleCommand}"`)
 		shell.exit(1)
 	}
 
@@ -332,7 +500,7 @@ app.all('/deleteVideo', async function(req, res) {
 		CompositionSid:  req.body.CompositionSid,
 		videoUrl: req.body.videoUrl,
 		phones: req.body.phones,
-		filesDeleted: [req.body.compositionFile, origFile],
+		filesDeleted: deleteThese,
 		firebase_functions_host: req.body.firebase_functions_host,
 		cloud_host: req.body.cloud_host,  // this host, so we don't have to keep querying config/settings doc
 		compositionProgress: req.body.compositionProgress,
@@ -347,12 +515,25 @@ app.all('/deleteVideo', async function(req, res) {
 		function (err, httpResponse, body) {
 			console.log(`AFTER GOING TO ${req.body.callbackUrl}:  `, err, body);
 			if(err) {
-				return res.status(500).send(JSON.stringify({"error": err, "vm url": req.body.callbackUrl}));
+				// can't send 500's back - twilio doesn't like that
+				return res.status(200).send(JSON.stringify({"error": err, "vm url": req.body.callbackUrl}));
 			}
 			else return res.status(200).send(JSON.stringify({"result": "ok"}));
 		}
 	);
 })
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 app.all('/download', function(req, res) {
