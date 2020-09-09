@@ -677,32 +677,9 @@ app.all('/hls', async function(req, res) {
 
 
 
-app.all('/newfolder', async function(req, res) {
-
-	let folder = "CJ9b9c4b45bc8f02c9724c0717592073b3"
-	let file = "CJ9b9c4b45bc8f02c9724c0717592073b3.mp4"
-	let path = "/home/bdunklau/videos/CJ9b9c4b45bc8f02c9724c0717592073b3.mp4"
-	// Creates a client
-	const storage = new Storage({
-		projectId: 'yourvotecounts-bd737',
-		keyFilename: '/home/bdunklau/yourvotecounts-bd737-980dde8224a5.json'
-	});
-	let bucketName = 'yourvotecounts-bd737.appspot.com'
-	// Uploads a local file to the bucket
-    await storage.bucket(bucketName).upload(path, {
-		destination: folder+"/"+file,
-		// Support for HTTP requests made with `Accept-Encoding: gzip`
-		gzip: true,
-		// By setting the option `destination`, you can change the name of the
-		// object you are uploading to a bucket.
-		metadata: {
-		  // Enable long-lived HTTP caching headers
-		  // Use only if the contents of the file will never change
-		  // (If the contents will change, use cacheControl: 'no-cache')
-		  cacheControl: 'public, max-age=31536000',
-		},
-	});
-	res.status(200).send('done')
+app.all('/env', async function(req, res) {
+    
+	res.status(200).send(`env var is: ${req.body.envvar}`)
 })
 
 
