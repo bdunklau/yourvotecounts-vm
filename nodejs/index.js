@@ -349,7 +349,7 @@ app.all('/uploadToFirebaseStorage', async function(req, res) {
 	//DON'T short-circuit anymore   if(true) return res.status(200).send(JSON.stringify({"result": "ok"})); // short-circuit this whole function
 
     /**
-	 * Passed in from /cutVideoComplete
+	 * Passed in from /createHlsComplete
 	  
 	 
 		let formData = {
@@ -362,6 +362,7 @@ app.all('/uploadToFirebaseStorage', async function(req, res) {
 			phones: req.body.phones,
 			firebase_functions_host: req.body.firebase_functions_host,
 			cloud_host: req.body.cloud_host,  // this host, so we don't have to keep querying config/settings doc
+            callbackUrl: `https://${req.body.firebase_functions_host}/uploadToFirebaseStorageComplete`, // just below this function
 			compositionProgress: req.body.compositionProgress,
 			website_domain_name: req.body.website_domain_name
 		}
@@ -393,7 +394,7 @@ app.all('/uploadToFirebaseStorage', async function(req, res) {
 			},
 		});
 
-		await storage.bucket(bucketName).file(file.name).makePublic();
+		await storage.bucket(bucketName).file(folder+"/"+file.name).makePublic();
 
 	})
 
