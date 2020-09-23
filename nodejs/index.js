@@ -478,7 +478,7 @@ app.all('/uploadScreenshotToStorage', async function(req, res) {
 
 	let bucketName = 'yourvotecounts-bd737.appspot.com'
 	let folder = req.body.CompositionSid
-	let filepath = `/home/bduklau/videos/${req.body.CompositionSid}.jpg`
+	let filepath = `/home/bdunklau/videos/${req.body.CompositionSid}.jpg`
 	await storage.bucket(bucketName).upload(filepath, {
 		destination: `${folder}/${req.body.CompositionSid}.jpg`,
 		// Support for HTTP requests made with `Accept-Encoding: gzip`
