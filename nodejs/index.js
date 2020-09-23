@@ -240,7 +240,7 @@ app.all('/createHls', async function(req, res) {
 	let runTogether = _.join(commands, ";")
 
 	if (shell.exec(runTogether).code !== 0) {
-		shell.echo(`Error at this command: "${command}"`)
+		shell.echo(`Error at this command: "${runTogether}"`)
 		shell.exit(1)
 	}
 
@@ -465,7 +465,7 @@ app.all('/uploadScreenshotToStorage', async function(req, res) {
 	let runTogether = _.join(commands, ";")
 
 	if (shell.exec(runTogether).code !== 0) {
-		shell.echo(`Error at this command: "${command}"`)
+		shell.echo(`Error at this command: "${runTogether}"`)
 		shell.exit(1)
 	}
 
@@ -497,7 +497,8 @@ app.all('/uploadScreenshotToStorage', async function(req, res) {
 
 	
 	// delete the screenshot after uploading
-	if (shell.exec(`rm /home/bdunklau/videos/${req.body.CompositionSid}.jpg`).code !== 0) {
+	let command = `rm /home/bdunklau/videos/${req.body.CompositionSid}.jpg`
+	if (shell.exec(command).code !== 0) {
 		shell.echo(`Error at this command: "${command}"`)
 		shell.exit(1)
 	}
