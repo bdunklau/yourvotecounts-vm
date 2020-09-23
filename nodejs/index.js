@@ -242,7 +242,6 @@ app.all('/createHls', async function(req, res) {
 	if (shell.exec(runTogether).code !== 0) {
 		shell.echo(`Error at this command: "${command}"`)
 		shell.exit(1)
-		commandRes.push(command)
 	}
 
 
@@ -399,29 +398,6 @@ app.all('/uploadToFirebaseStorage', async function(req, res) {
 	})
 
 
-
-
-
-	/////////////////////////////////////////////////////////////////////////////////////////////
-	// SIGNED URL'S AREN'T GOOD FOREVER AND THEY STILL DON'T PLAY IN IPHONE'S <video> TAG
-	// SAFARI *WILL* PLAY THE VIDEO SO THAT'S A LITTLE PROGRESS BUT NOT TOTALLY WHAT WE NEED.
-	//
-	// create signed url...
-	// These options will allow temporary read access to the file
-	/******************************** DON'T THINK WE NEED SIGNED URL'S
-	const expiresOn = Date.now() + expiryDays * 24 * 59 * 60 * 1000 // expires in expiryDays days
-	const options = {
-		version: 'v4',
-		action: 'read',
-		expires: expiresOn
-    }// Get a v4 signed URL for reading the file
-	var signedUrl = await storage.bucket(bucketName).file(req.body.CompositionSid+'-output.mp4').getSignedUrl(options);
-    if(signedUrl && signedUrl.length > 0) {
-		signedUrl = signedUrl[0]
-	}
-	***********************************/
-
-
 	let formData = {
 		outputFile: req.body.outputFile,
 		uploadFiles: req.body.uploadFiles,
@@ -458,6 +434,109 @@ app.all('/uploadToFirebaseStorage', async function(req, res) {
 })
 
 
+
+app.all('/uploadScreenshotToStorage', function(req, res) {
+    /**
+	 * passed in from twilio-video.js:/uploadToFirebaseStorageComplete()	 
+			
+		let formData = {
+			outputFile: req.body.outputFile,
+			uploadFiles: req.body.uploadFiles,
+			RoomSid: req.body.RoomSid,
+			CompositionSid:  req.body.CompositionSid,
+			compositionFile: req.body.compositionFile,
+			videoUrl: videoUrl,
+			videoUrlAlt: videoUrlAlt,
+			phones: req.body.phones,
+			cloud_host: req.body.cloud_host,
+			firebase_functions_host: req.body.firebase_functions_host,
+			//callbackUrl: `https://${req.body.firebase_functions_host}/deleteVideoComplete`, // just below this function
+			callbackUrl: `https://${req.body.firebase_functions_host}/uploadScreenshotToStorageComplete`, // just below this function
+			compositionProgress: compositionProgress,
+			website_domain_name: req.body.website_domain_name
+		}
+	 */
+
+	 
+	let commands = [
+		`cd /home/bdunklau/videos`,
+		`ffmpeg -i ${req.body.outputFile} -ss 00:00:03 -vframes 1 ${req.body.CompositionSid}.jpg`
+	]
+	let runTogether = _.join(commands, ";")
+
+	if (shell.exec(runTogether).code !== 0) {
+		shell.echo(`Error at this command: "${command}"`)
+		shell.exit(1)
+	}
+
+	
+	// Creates a client
+	const storage = new Storage({
+		projectId: 'yourvotecounts-bd737',
+		keyFilename: '/home/bdunklau/yourvotecounts-bd737-980dde8224a5.json'
+	});
+
+	let bucketName = 'yourvotecounts-bd737.appspot.com'
+	let folder = req.body.CompositionSid
+	let filepath = `/home/bduklau/videos/${req.body.CompositionSid}.jpg`
+	await storage.bucket(bucketName).upload(filepath, {
+		destination: `${folder}/${req.body.CompositionSid}.jpg`,
+		// Support for HTTP requests made with `Accept-Encoding: gzip`
+		gzip: true,
+		// By setting the option `destination`, you can change the name of the
+		// object you are uploading to a bucket.
+		metadata: {
+			// Enable long-lived HTTP caching headers
+			// Use only if the contents of the file will never change
+			// (If the contents will change, use cacheControl: 'no-cache')
+			cacheControl: 'public, max-age=31536000',
+		},
+	});
+
+	await storage.bucket(bucketName).file(`${folder}/${req.body.CompositionSid}.jpg`).makePublic();
+
+	
+	// delete the screenshot after uploading
+	if (shell.exec(`rm /home/bdunklau/videos/${req.body.CompositionSid}.jpg`).code !== 0) {
+		shell.echo(`Error at this command: "${command}"`)
+		shell.exit(1)
+	}
+
+	
+	let formData = {
+		outputFile: req.body.outputFile,
+		uploadFiles: req.body.uploadFiles,
+		RoomSid: req.body.RoomSid,
+		CompositionSid:  req.body.CompositionSid,
+		compositionFile: req.body.compositionFile, 
+		screenshot: req.body.CompositionSid+".jpg", // just the file name, no path
+		phones: req.body.phones,
+		//videoUrl: signedUrl,
+		firebase_functions_host: req.body.firebase_functions_host,
+		cloud_host: req.body.cloud_host,  // this host, so we don't have to keep querying config/settings doc
+		compositionProgress: req.body.compositionProgress,
+        website_domain_name: req.body.website_domain_name
+	}
+	if(req.body.stop) formData['stop'] = true
+
+	request.post(
+		{
+			url: req.body.callbackUrl,  // /uploadScreenshotToStorageComplete
+			json: formData // 'json' attr name is KEY HERE, don't use 'form'
+		},
+		function (err, httpResponse, body) {
+			if(err) {
+				// can't send 500's back - twilio doesn't like that
+				return res.status(200).send(JSON.stringify({"error": err, "vm url": req.body.callbackUrl}));
+			}
+			//console.log(err, body);
+			else return res.status(200).send(JSON.stringify({"result": "ok"}));
+		}
+	);
+})
+
+
+
 /**
  * Delete both the original composition file and the -output.mp4 composition file
  */
@@ -474,12 +553,10 @@ app.all('/deleteVideo', async function(req, res) {
 			RoomSid: req.body.RoomSid,
 			CompositionSid:  req.body.CompositionSid,
 			compositionFile: req.body.compositionFile,
-			videoUrl: videoUrl,
-			videoUrlAlt: videoUrlAlt,
 			phones: req.body.phones,
 			cloud_host: req.body.cloud_host,
 			firebase_functions_host: req.body.firebase_functions_host,
-			callbackUrl: `https://${req.body.firebase_functions_host}/deleteVideoComplete`, // just below this function
+			callbackUrl: `https://${req.body.firebase_functions_host}/deleteVideoComplete`,
 			compositionProgress: compositionProgress,
 			website_domain_name: req.body.website_domain_name
 		}
@@ -502,8 +579,6 @@ app.all('/deleteVideo', async function(req, res) {
 	let formData = {
 		RoomSid: req.body.RoomSid,
 		CompositionSid:  req.body.CompositionSid,
-		videoUrl: req.body.videoUrl,
-		videoUrlAlt: req.body.videoUrlAlt,
 		phones: req.body.phones,
 		filesDeleted: deleteThese,
 		firebase_functions_host: req.body.firebase_functions_host,
