@@ -435,7 +435,7 @@ app.all('/uploadToFirebaseStorage', async function(req, res) {
 
 
 
-app.all('/uploadScreenshotToStorage', function(req, res) {
+app.all('/uploadScreenshotToStorage', async function(req, res) {
     /**
 	 * passed in from twilio-video.js:/uploadToFirebaseStorageComplete()	 
 			
