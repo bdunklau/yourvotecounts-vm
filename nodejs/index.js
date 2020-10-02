@@ -126,7 +126,8 @@ app.all('/cutVideo', function(req, res) {
             cloud_host: settingsObj.data().cloud_host,
 			callbackUrl: `https://${settingsObj.data().firebase_functions_host}/cutVideoComplete`, // just below this function
 			compositionProgress: roomDoc.data()['compositionProgress'],
-			website_domain_name: req.body.website_domain_name
+			website_domain_name: req.body.website_domain_name,
+            storage_bucket: req.body.storage_bucket
         }
 	******/
 
@@ -179,7 +180,8 @@ app.all('/cutVideo', function(req, res) {
 		firebase_functions_host: req.body.firebase_functions_host,
 		cloud_host: req.body.cloud_host,  // this host, so we don't have to keep querying config/settings doc
 		compositionProgress: req.body.compositionProgress,
-		website_domain_name: req.body.website_domain_name
+		website_domain_name: req.body.website_domain_name,
+		storage_bucket: req.body.storage_bucket
 	}
 	if(req.body.stop) formData['stop'] = true
 
@@ -226,7 +228,8 @@ app.all('/createHls', async function(req, res) {
 			firebase_functions_host: req.body.firebase_functions_host,
 			callbackUrl: `https://${req.body.firebase_functions_host}/createHlsComplete`, // just below this function
 			compositionProgress: compositionProgress,
-			website_domain_name: req.body.website_domain_name
+			website_domain_name: req.body.website_domain_name,
+            storage_bucket: req.body.storage_bucket
 		}
 	 
 	 */
@@ -266,35 +269,6 @@ app.all('/createHls', async function(req, res) {
 		})
 
 
-
-		/*******************************
-		//listing all files using forEach
-		files.forEach(async function (file) {
-			//console.log('file is: ', file) // just the file name with no path/dir info
-			let bucketName = 'yourvotecounts-bd737.appspot.com'
-			// Uploads a local file to the bucket
-			let bucketFolder = req.body.CompositionSid
-			await storage.bucket(bucketName).upload(req.query.dir+"/"+file, {
-				destination: bucketFolder+"/"+file,
-				// Support for HTTP requests made with `Accept-Encoding: gzip`
-				gzip: true,
-				// By setting the option `destination`, you can change the name of the
-				// object you are uploading to a bucket.
-				metadata: {
-					// Enable long-lived HTTP caching headers
-					// Use only if the contents of the file will never change
-					// (If the contents will change, use cacheControl: 'no-cache')
-					cacheControl: 'public, max-age=31536000',
-				},
-			});
-
-			await storage.bucket(bucketName).file(file).makePublic();
-
-
-		}); // end:  files.forEach(function (file)
-		************************/
-
-
 		/////////////////////////////////////////////////////////
 		// POST BACK TO /createHlsComplete
         let formData = {
@@ -308,7 +282,8 @@ app.all('/createHls', async function(req, res) {
 			firebase_functions_host: req.body.firebase_functions_host,
 			cloud_host: req.body.cloud_host,  // this host, so we don't have to keep querying config/settings doc
 			compositionProgress: req.body.compositionProgress,
-			website_domain_name: req.body.website_domain_name
+			website_domain_name: req.body.website_domain_name,
+            storage_bucket: req.body.storage_bucket
 		}
 		if(req.body.stop) formData['stop'] = true
 
@@ -363,7 +338,8 @@ app.all('/uploadToFirebaseStorage', async function(req, res) {
 			cloud_host: req.body.cloud_host,  // this host, so we don't have to keep querying config/settings doc
             callbackUrl: `https://${req.body.firebase_functions_host}/uploadToFirebaseStorageComplete`, // just below this function
 			compositionProgress: req.body.compositionProgress,
-			website_domain_name: req.body.website_domain_name
+			website_domain_name: req.body.website_domain_name,
+            storage_bucket: req.body.storage_bucket
 		}
 	  
 	 */
@@ -409,7 +385,8 @@ app.all('/uploadToFirebaseStorage', async function(req, res) {
 		firebase_functions_host: req.body.firebase_functions_host,
 		cloud_host: req.body.cloud_host,  // this host, so we don't have to keep querying config/settings doc
 		compositionProgress: req.body.compositionProgress,
-        website_domain_name: req.body.website_domain_name
+        website_domain_name: req.body.website_domain_name,
+		storage_bucket: req.body.storage_bucket
 	}
 	if(req.body.stop) formData['stop'] = true
 
