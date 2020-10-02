@@ -127,7 +127,8 @@ app.all('/cutVideo', function(req, res) {
 			callbackUrl: `https://${settingsObj.data().firebase_functions_host}/cutVideoComplete`, // just below this function
 			compositionProgress: roomDoc.data()['compositionProgress'],
 			website_domain_name: req.body.website_domain_name,
-            storage_bucket: req.body.storage_bucket
+            projectId: req.body.projectId,
+            storage_keyfile: req.body.storage_keyfile
         }
 	******/
 
@@ -181,7 +182,8 @@ app.all('/cutVideo', function(req, res) {
 		cloud_host: req.body.cloud_host,  // this host, so we don't have to keep querying config/settings doc
 		compositionProgress: req.body.compositionProgress,
 		website_domain_name: req.body.website_domain_name,
-		storage_bucket: req.body.storage_bucket
+		projectId: req.body.projectId,
+		storage_keyfile: req.body.storage_keyfile
 	}
 	if(req.body.stop) formData['stop'] = true
 
@@ -229,7 +231,8 @@ app.all('/createHls', async function(req, res) {
 			callbackUrl: `https://${req.body.firebase_functions_host}/createHlsComplete`, // just below this function
 			compositionProgress: compositionProgress,
 			website_domain_name: req.body.website_domain_name,
-            storage_bucket: req.body.storage_bucket
+            projectId: req.body.projectId,
+            storage_keyfile: req.body.storage_keyfile
 		}
 	 
 	 */
@@ -251,8 +254,8 @@ app.all('/createHls', async function(req, res) {
 	//////////////////////////////////////////////////////////////////////
 	//  loop over each file in CompositionSid-hls
 	const storage = new Storage({
-		projectId: 'yourvotecounts-bd737',
-		keyFilename: '/home/bdunklau/yourvotecounts-bd737-980dde8224a5.json'
+		projectId: req.body.projectId,
+		keyFilename: `/home/bdunklau/${req.body.storage_keyfile}`
 	});
 
 	let uploadFiles = [{path: req.body.outputFile, name: `${req.body.CompositionSid}-output.mp4`}]
@@ -283,7 +286,8 @@ app.all('/createHls', async function(req, res) {
 			cloud_host: req.body.cloud_host,  // this host, so we don't have to keep querying config/settings doc
 			compositionProgress: req.body.compositionProgress,
 			website_domain_name: req.body.website_domain_name,
-            storage_bucket: req.body.storage_bucket
+            projectId: req.body.projectId,
+            storage_keyfile: req.body.storage_keyfile
 		}
 		if(req.body.stop) formData['stop'] = true
 
@@ -339,7 +343,8 @@ app.all('/uploadToFirebaseStorage', async function(req, res) {
             callbackUrl: `https://${req.body.firebase_functions_host}/uploadToFirebaseStorageComplete`, // just below this function
 			compositionProgress: req.body.compositionProgress,
 			website_domain_name: req.body.website_domain_name,
-            storage_bucket: req.body.storage_bucket
+            projectId: req.body.projectId,
+            storage_keyfile: req.body.storage_keyfile
 		}
 	  
 	 */
@@ -347,11 +352,11 @@ app.all('/uploadToFirebaseStorage', async function(req, res) {
 
 	// Creates a client
 	const storage = new Storage({
-		projectId: 'yourvotecounts-bd737',
-		keyFilename: '/home/bdunklau/yourvotecounts-bd737-980dde8224a5.json'
+		projectId: req.body.projectId,
+		keyFilename: `/home/bdunklau/${req.body.storage_keyfile}`
 	});
 
-	let bucketName = 'yourvotecounts-bd737.appspot.com'
+	let bucketName = `${req.body.projectId}.appspot.com`
     _.each(req.body.uploadFiles, async file => {
 		// Uploads a local file to the bucket
 		let folder = req.body.CompositionSid
@@ -386,7 +391,8 @@ app.all('/uploadToFirebaseStorage', async function(req, res) {
 		cloud_host: req.body.cloud_host,  // this host, so we don't have to keep querying config/settings doc
 		compositionProgress: req.body.compositionProgress,
         website_domain_name: req.body.website_domain_name,
-		storage_bucket: req.body.storage_bucket
+		projectId: req.body.projectId,
+		storage_keyfile: req.body.storage_keyfile
 	}
 	if(req.body.stop) formData['stop'] = true
 
@@ -430,7 +436,9 @@ app.all('/uploadScreenshotToStorage', async function(req, res) {
 			//callbackUrl: `https://${req.body.firebase_functions_host}/deleteVideoComplete`, // just below this function
 			callbackUrl: `https://${req.body.firebase_functions_host}/uploadScreenshotToStorageComplete`, // just below this function
 			compositionProgress: compositionProgress,
-			website_domain_name: req.body.website_domain_name
+			website_domain_name: req.body.website_domain_name,
+            projectId: req.body.projectId,
+            storage_keyfile: req.body.storage_keyfile
 		}
 	 */
 
@@ -449,11 +457,11 @@ app.all('/uploadScreenshotToStorage', async function(req, res) {
 	
 	// Creates a client
 	const storage = new Storage({
-		projectId: 'yourvotecounts-bd737',
-		keyFilename: '/home/bdunklau/yourvotecounts-bd737-980dde8224a5.json'
+		projectId: req.body.projectId,
+		keyFilename: `/home/bdunklau/${req.body.storage_keyfile}`
 	});
 
-	let bucketName = 'yourvotecounts-bd737.appspot.com'
+	let bucketName = req.body.projectId+'.appspot.com'
 	let folder = req.body.CompositionSid
 	let filepath = `/home/bdunklau/videos/${req.body.CompositionSid}.jpg`
 	await storage.bucket(bucketName).upload(filepath, {
@@ -493,7 +501,9 @@ app.all('/uploadScreenshotToStorage', async function(req, res) {
 		firebase_functions_host: req.body.firebase_functions_host,
 		cloud_host: req.body.cloud_host,  // this host, so we don't have to keep querying config/settings doc
 		compositionProgress: req.body.compositionProgress,
-        website_domain_name: req.body.website_domain_name
+        website_domain_name: req.body.website_domain_name,
+		projectId: req.body.projectId,
+		storage_keyfile: req.body.storage_keyfile
 	}
 	if(req.body.stop) formData['stop'] = true
 
@@ -536,7 +546,9 @@ app.all('/deleteVideo', async function(req, res) {
 			firebase_functions_host: req.body.firebase_functions_host,
 			callbackUrl: `https://${req.body.firebase_functions_host}/deleteVideoComplete`,
 			compositionProgress: compositionProgress,
-			website_domain_name: req.body.website_domain_name
+			website_domain_name: req.body.website_domain_name,
+            projectId: req.body.projectId,
+            storage_keyfile: req.body.storage_keyfile
 		}
 
 	 */
@@ -562,7 +574,9 @@ app.all('/deleteVideo', async function(req, res) {
 		firebase_functions_host: req.body.firebase_functions_host,
 		cloud_host: req.body.cloud_host,  // this host, so we don't have to keep querying config/settings doc
 		compositionProgress: req.body.compositionProgress,
-        website_domain_name: req.body.website_domain_name
+        website_domain_name: req.body.website_domain_name,
+		projectId: req.body.projectId,
+		storage_keyfile: req.body.storage_keyfile
 	}
 
 	request.post(
@@ -600,133 +614,6 @@ app.all('/download', function(req, res) {
 });
 
 
-app.all('/makepublic', async function(req, res) {
-	
-	// Creates a client
-	const storage = new Storage({
-		projectId: 'yourvotecounts-bd737',
-		keyFilename: '/home/bdunklau/yourvotecounts-bd737-980dde8224a5.json'
-	});
-
-	let bucketName = 'yourvotecounts-bd737.appspot.com'
-	let filename = 'CJ67fdd76b78de2a9ec31700019014f5e8-output.mp4'
-	await storage.bucket(bucketName).file(filename).makePublic();
-
-	return res.status(200).send(`now public: ${filename}`)
-})
-
-
-
-
-app.all('/cors', function(req, res) {
-	// Creates a client
-	const storage = new Storage({
-		projectId: 'yourvotecounts-bd737',
-		keyFilename: '/home/bdunklau/yourvotecounts-bd737-980dde8224a5.json'
-	});
-	
-	let bucketName = 'yourvotecounts-bd737.appspot.com'
-	const bucket = storage.bucket(bucketName);
-
-	const corsConfiguration = [{maxAgeSeconds: 3600}]; // 1 hour
-	bucket.setCorsConfiguration(corsConfiguration);
-
-	//-
-	// If the callback is omitted, we'll return a Promise.
-	//-
-	bucket.setCorsConfiguration(corsConfiguration).then(function(data) {
-		const apiResponse = data[0];
-		res.status(200).send(apiResponse)
-	});
-})
-
-
-
-app.all('/signUrl', async function(req, res) {
-	
-	// Creates a client
-	const storage = new Storage({
-		projectId: 'yourvotecounts-bd737',
-		keyFilename: '/home/bdunklau/yourvotecounts-bd737-980dde8224a5.json'
-	});
-	
-	let bucketName = 'yourvotecounts-bd737.appspot.com'
-	const bucket = storage.bucket(bucketName);
-	
-	// create signed url...
-	// These options will allow temporary read access to the file
-	const expiresOn = Date.now() + expiryDays * 24 * 59 * 60 * 1000 // expires in expiryDays days
-	const options = {
-		version: 'v4',
-		action: 'read',
-		expires: expiresOn
-    }// Get a v4 signed URL for reading the file
-	const signedUrl = await storage.bucket(bucketName).file(req.query.CompositionSid+'-output.mp4').getSignedUrl(options);
-
-	res.status(200).send(JSON.stringify({CompositionSid: req.query.CompositionSid, signedUrl: signedUrl, expires: new Date(expiresOn)}))
-
-})
-
-
-app.all('/hls', async function(req, res) {
-	// req.query.dir,  req.query.CompositionSid
-	// upload all .ts files
-	// upload the .m3u8 file
-	// set them to public
-
-	
-	// Creates a client
-	const storage = new Storage({
-		projectId: 'yourvotecounts-bd737',
-		keyFilename: '/home/bdunklau/yourvotecounts-bd737-980dde8224a5.json'
-	});
-
-
-
-
-
-	fs.readdir(req.query.dir, function (err, files) {
-		//handling error
-		if (err) {
-			return console.log('Unable to scan directory '+req.query.dir+' because of this error: ' + err);
-		} 
-		//listing all files using forEach
-		files.forEach(async function (file) {
-			//console.log('file is: ', file) // just the file name with no path/dir info
-			let bucketName = 'yourvotecounts-bd737.appspot.com'
-			if(req.query.delete) {
-				await storage.bucket(bucketName).file(file).delete()
-			}
-			else {
-				// Uploads a local file to the bucket
-				/*********/			
-				await storage.bucket(bucketName).upload(req.query.dir+"/"+file, {
-					// Support for HTTP requests made with `Accept-Encoding: gzip`
-					gzip: true,
-					// By setting the option `destination`, you can change the name of the
-					// object you are uploading to a bucket.
-					metadata: {
-						// Enable long-lived HTTP caching headers
-						// Use only if the contents of the file will never change
-						// (If the contents will change, use cacheControl: 'no-cache')
-						cacheControl: 'public, max-age=31536000',
-					},
-				});
-				/**********/
-
-				await storage.bucket(bucketName).file(file).makePublic();
-		    }
-
-
-
-
-		}); // end:  files.forEach(function (file)
-		res.status(200).send('done')
-	});
-
-
-
-})
 
 
 
