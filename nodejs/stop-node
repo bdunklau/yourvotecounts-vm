@@ -1,2 +1,3 @@
 #!/bin/bash
+echo "STOPPING NODE"
 pkill node
