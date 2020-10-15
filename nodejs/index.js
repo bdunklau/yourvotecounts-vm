@@ -597,7 +597,10 @@ app.all('/deleteVideo', async function(req, res) {
 
 
 
-
+app.all('/test', function(req, res) {
+	
+	res.status(200).send(JSON.stringify({"result": "ok"}))
+})
 
 
 
