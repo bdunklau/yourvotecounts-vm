@@ -40,7 +40,7 @@ app.use(bodyParser.json())
 app.use('/test', (req, res, next) => {
 	console.log('[before next()]  path:  /test')
 	next()
-	console.log('[after next()]v  path:  /test')
+	console.log('[after next()]   path:  /test')
 	// because this code is called AFTER next(), it will be fired at the end of every call so we can see how much memory we're using
 	const fullUrl = req.protocol + '://' + req.get('host') + req.originalUrl;
 	const mu = process.memoryUsage();
