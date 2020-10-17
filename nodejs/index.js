@@ -25,7 +25,7 @@ app.use('/', (req, res, next) => {
 	next()
 	res.write(JSON.stringify({root2: 'current'}))
 	// res.end()  // called instead in the '/test' middleware
-	return
+	//return
 })
 
 /**
