@@ -22,13 +22,13 @@ app.use(bodyParser.json())
 
 
 /**
- * SIMPLE MEMORY USAGE REPORTING, FIRES AFTER EVERY REQUEST
+ * SIMPLE MEMORY USAGE REPORTING, FIRES AFTER EVERY REQUEST ON THE /test PATH
  * 
  * Ref:   https://github.com/Data-Wrangling-with-JavaScript/nodejs-memory-test/blob/master/index.js
  * 
  * On a sample workflow, the max memory usage reported was  0.02 GB
  */
-app.use('/', (req, res, next) => {
+app.use('/test', (req, res, next) => {
 	next()
 	// because this code is called AFTER next(), it will be fired at the end of every call so we can see how much memory we're using
 	const fullUrl = req.protocol + '://' + req.get('host') + req.originalUrl;
@@ -36,7 +36,13 @@ app.use('/', (req, res, next) => {
 	const mbNow = mu['heapUsed'] / 1024 / 1024 / 1024;
 	const heapUsed = Math.round(mbNow * 100) / 100
 	console.log(`after ${fullUrl} - ${heapUsed} GB`)
-	res.write(JSON.stringify({heapUsed: `${heapUsed} GB`}))
+	res.write(JSON.stringify({heapUsed: `${heapUsed} GB`, test: 'current'}))
+	// res.end()  // called instead in the '/' middleware
+})
+
+app.use('/', (req, res, next) => {
+	next()
+	res.write(JSON.stringify({root: 'current'}))
 	res.end()
 })
 
