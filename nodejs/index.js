@@ -36,11 +36,12 @@ app.use('/', (req, res, next) => {
 	const mbNow = mu['heapUsed'] / 1024 / 1024 / 1024;
 	const heapUsed = Math.round(mbNow * 100) / 100
 	console.log(`after ${fullUrl} - ${heapUsed} GB`)
-	res.send(JSON.stringify({heapUsed: `${heapUsed} GB`}))
+	res.write(JSON.stringify({heapUsed: `${heapUsed} GB`}))
+	res.end()
 })
 
 app.get('/', function(req, res) {
-	res.send(JSON.stringify({response: 'ok'}))
+	res.write(JSON.stringify({response: 'ok'}))
 })
 
 
@@ -79,14 +80,14 @@ app.post('/downloadComposition', function(req, res) {
 	})
 	.on('error', function(err) {
 	    if(err) {
-	        res.send(JSON.stringify({error: err, when: 'on error'}))	
+	        res.write(JSON.stringify({error: err, when: 'on error'}))	
 	    }
 	})
 	.on('end', function() {
 	})
 	.pipe(
 	    fs.createWriteStream(compositionFile).on('finish', function() {
-			//return res.send(JSON.stringify({compositionFile: compositionFile})) // could probably just return {res: 'ok'}
+			//return res.write(JSON.stringify({compositionFile: compositionFile})) // could probably just return {res: 'ok'}
 
 			let formData = {
 				compositionFile: compositionFile,
@@ -106,10 +107,10 @@ app.post('/downloadComposition', function(req, res) {
 				function (err, httpResponse, body) {
 					if(err) {
 						// can only send back 2xx responses because of twilio
-						return res.status(200).send(JSON.stringify({"error": err, "vm url": `https://${req.body.firebase_functions_host}${req.body.firebase_function}`}));
+						return res.status(200).write(JSON.stringify({"error": err, "vm url": `https://${req.body.firebase_functions_host}${req.body.firebase_function}`}));
 					}
 					//console.log(err, body);
-					else return res.status(200).send(JSON.stringify({"result": "ok"}));
+					else return res.status(200).write(JSON.stringify({"result": "ok"}));
 				}
 			);
 
@@ -128,7 +129,7 @@ app.post('/downloadComposition', function(req, res) {
  */
 app.all('/cutVideo', function(req, res) {
 	if(req.query.test) {
-		res.status(200).send(JSON.stringify({"test": req.query.test}))
+		res.status(200).write(JSON.stringify({"test": req.query.test}))
 		return
 	}
 
@@ -214,10 +215,10 @@ app.all('/cutVideo', function(req, res) {
 		function (err, httpResponse, body) {
 			if(err) {
 				// can't send 500's back - twilio doesn't like that
-				return res.status(200).send(JSON.stringify({"error": err, "vm url": req.body.callbackUrl}));
+				return res.status(200).write(JSON.stringify({"error": err, "vm url": req.body.callbackUrl}));
 			}
 			//console.log(err, body);
-			else return res.status(200).send(JSON.stringify({"result": "ok"}));
+			else return res.status(200).write(JSON.stringify({"result": "ok"}));
 		}
 	);
 
@@ -318,15 +319,15 @@ app.all('/createHls', async function(req, res) {
 			function (err, httpResponse, body) {
 				if(err) {
 					// can't send 500's back - twilio doesn't like that
-					return res.status(200).send(JSON.stringify({"error": err, "vm url": req.body.callbackUrl}));
+					return res.status(200).write(JSON.stringify({"error": err, "vm url": req.body.callbackUrl}));
 				}
 				//console.log(err, body);
-				else return res.status(200).send(JSON.stringify({"result": "ok"}));
+				else return res.status(200).write(JSON.stringify({"result": "ok"}));
 			}
 		);
 		
 
-		//return res.status(200).send('done')
+		//return res.status(200).write('done')
 
 	}); // fs.readdir()
 	
@@ -343,7 +344,7 @@ app.all('/createHls', async function(req, res) {
  * /cutVideoComplete is called by /cutVideo, which is just above this function
  */
 app.all('/uploadToFirebaseStorage', async function(req, res) {
-	//DON'T short-circuit anymore   if(true) return res.status(200).send(JSON.stringify({"result": "ok"})); // short-circuit this whole function
+	//DON'T short-circuit anymore   if(true) return res.status(200).write(JSON.stringify({"result": "ok"})); // short-circuit this whole function
 
     /**
 	 * Passed in from /createHlsComplete
@@ -423,15 +424,15 @@ app.all('/uploadToFirebaseStorage', async function(req, res) {
 		function (err, httpResponse, body) {
 			if(err) {
 				// can't send 500's back - twilio doesn't like that
-				return res.status(200).send(JSON.stringify({"error": err, "vm url": req.body.callbackUrl}));
+				return res.status(200).write(JSON.stringify({"error": err, "vm url": req.body.callbackUrl}));
 			}
 			//console.log(err, body);
-			else return res.status(200).send(JSON.stringify({"result": "ok"}));
+			else return res.status(200).write(JSON.stringify({"result": "ok"}));
 		}
 	);
   
 
-	//return res.status(200).send(JSON.stringify({"result": `uploaded ${req.query.file}`}))
+	//return res.status(200).write(JSON.stringify({"result": `uploaded ${req.query.file}`}))
 
 })
 
@@ -534,10 +535,10 @@ app.all('/uploadScreenshotToStorage', async function(req, res) {
 		function (err, httpResponse, body) {
 			if(err) {
 				// can't send 500's back - twilio doesn't like that
-				return res.status(200).send(JSON.stringify({"error": err, "vm url": req.body.callbackUrl}));
+				return res.status(200).write(JSON.stringify({"error": err, "vm url": req.body.callbackUrl}));
 			}
 			//console.log(err, body);
-			else return res.status(200).send(JSON.stringify({"result": "ok"}));
+			else return res.status(200).write(JSON.stringify({"result": "ok"}));
 		}
 	);
 })
@@ -548,7 +549,7 @@ app.all('/uploadScreenshotToStorage', async function(req, res) {
  * Delete both the original composition file and the -output.mp4 composition file
  */
 app.all('/deleteVideo', async function(req, res) {
-	//DON'T short-circuit anymore   if(true) return res.status(200).send(JSON.stringify({"result": "ok"})); // short-circuit this whole function
+	//DON'T short-circuit anymore   if(true) return res.status(200).write(JSON.stringify({"result": "ok"})); // short-circuit this whole function
 
 	/**
 	  Passed in from /uploadToFirebaseStorageComplete 
@@ -607,9 +608,9 @@ app.all('/deleteVideo', async function(req, res) {
 			console.log(`AFTER GOING TO ${req.body.callbackUrl}:  `, err, body);
 			if(err) {
 				// can't send 500's back - twilio doesn't like that
-				return res.status(200).send(JSON.stringify({"error": err, "vm url": req.body.callbackUrl}));
+				return res.status(200).write(JSON.stringify({"error": err, "vm url": req.body.callbackUrl}));
 			}
-			else return res.status(200).send(JSON.stringify({"result": "ok"}));
+			else return res.status(200).write(JSON.stringify({"result": "ok"}));
 		}
 	);
 })
@@ -618,7 +619,7 @@ app.all('/deleteVideo', async function(req, res) {
 
 app.all('/test', function(req, res) {
 	
-	res.status(200).send(JSON.stringify({"result": "ok"}))
+	res.status(200).write(JSON.stringify({"result": "ok"}))
 })
 
 
@@ -641,7 +642,7 @@ app.all('/download', function(req, res) {
 
 app.all('/env', async function(req, res) {
     
-	res.status(200).send(`env var is: ${req.body.envvar}`)
+	res.status(200).write(`env var is: ${req.body.envvar}`)
 })
 
 
