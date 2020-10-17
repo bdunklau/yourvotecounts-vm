@@ -23,6 +23,8 @@ app.use(bodyParser.json())
 
 /**
  * Ref:   https://github.com/Data-Wrangling-with-JavaScript/nodejs-memory-test/blob/master/index.js
+ * 
+ * On a sample workflow, the max memory usage reported was  0.02 GB
  */
 app.use('/', (req, res, next) => {
 	next()
