@@ -25,6 +25,7 @@ app.use('/', (req, res, next) => {
 	next()
 	res.write(JSON.stringify({root2: 'current'}))
 	// res.end()  // called instead in the '/test' middleware
+	return
 })
 
 /**
@@ -44,7 +45,7 @@ app.use('/test', (req, res, next) => {
 	console.log(`after ${fullUrl} - ${heapUsed} GB`)
 	res.write(JSON.stringify({heapUsed: `${heapUsed} GB`, test2: 'current'}))
 	res.end()
-	return
+	//return
 })
 
 app.get('/', function(req, res) {
