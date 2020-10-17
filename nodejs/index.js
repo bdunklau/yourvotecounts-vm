@@ -24,7 +24,7 @@ app.use('/', (req, res, next) => {
 	next()
 	const fullUrl = req.protocol + '://' + req.get('host') + req.originalUrl;
 	const mu = process.memoryUsage();
-	const mbNow = mu[field] / 1024 / 1024 / 1024;
+	const mbNow = mu['heapUsed'] / 1024 / 1024 / 1024;
 	console.log(`after ${fullUrl} - ${Math.round(mbNow * 100) / 100} GB`)
 })
 
