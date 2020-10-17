@@ -22,6 +22,8 @@ app.use(bodyParser.json())
 
 
 /**
+ * SIMPLE MEMORY USAGE REPORTING, FIRES AFTER EVERY REQUEST
+ * 
  * Ref:   https://github.com/Data-Wrangling-with-JavaScript/nodejs-memory-test/blob/master/index.js
  * 
  * On a sample workflow, the max memory usage reported was  0.02 GB
