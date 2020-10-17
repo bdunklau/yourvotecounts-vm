@@ -22,6 +22,15 @@ app.use(bodyParser.json())
 
 
 /**
+ * NOTE ON MIDDLEWARE ********************************************************
+ * Response sent back appears to depend on the order the functions are declared in this file - REVERSE ORDER
+ * Has nothing to do with the paths
+ * The middleware at the top of this file will get called last (at least the stuff after next())
+ * The middleware declared last will be run first (at least the stuff after next())
+ */
+
+
+/**
  * SIMPLE MEMORY USAGE REPORTING, FIRES AFTER EVERY REQUEST ON THE /test PATH
  * 
  * Ref:   https://github.com/Data-Wrangling-with-JavaScript/nodejs-memory-test/blob/master/index.js
@@ -37,8 +46,8 @@ app.use('/test', (req, res, next) => {
 	const heapUsed = Math.round(mbNow * 100) / 100
 	console.log(`after ${fullUrl} - ${heapUsed} GB`)
 	res.write(JSON.stringify({heapUsed: `${heapUsed} GB`, test6: 'current'}))
-	res.end()
-	//return
+	res.end()  // NEEDS TO BE IN THE TOP-MOST MIDDLEWARE DECLARATION
+	//return   // doesn't appear to be needed
 })
 
 
@@ -46,7 +55,7 @@ app.use('/', (req, res, next) => {
 	next()
 	res.write(JSON.stringify({root6: 'current'}))
 	//res.end()
-	//return
+	//return   // doesn't appear to be needed
 })
 
 
