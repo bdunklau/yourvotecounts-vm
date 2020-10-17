@@ -30,6 +30,16 @@ app.use(bodyParser.json())
  */
 
 
+app.use('/', (req, res, next) => {
+	console.log('[before next()]  path:  /')
+	next()
+	console.log('[after next()]   path:  /')
+	res.write(JSON.stringify({root6: 'current'}))
+	//res.end()  // NEEDS TO BE IN THE TOP-MOST MIDDLEWARE DECLARATION
+	//return   // doesn't appear to be needed
+})
+
+
 /**
  * SIMPLE MEMORY USAGE REPORTING, FIRES AFTER EVERY REQUEST ON THE /test PATH
  * 
@@ -49,16 +59,6 @@ app.use('/test', (req, res, next) => {
 	console.log(`after ${fullUrl} - ${heapUsed} GB`)
 	res.write(JSON.stringify({heapUsed: `${heapUsed} GB`, test6: 'current'}))
 	res.end()
-	//return   // doesn't appear to be needed
-})
-
-
-app.use('/', (req, res, next) => {
-	console.log('[before next()]  path:  /')
-	next()
-	console.log('[after next()]   path:  /')
-	res.write(JSON.stringify({root6: 'current'}))
-	//res.end()  // NEEDS TO BE IN THE TOP-MOST MIDDLEWARE DECLARATION
 	//return   // doesn't appear to be needed
 })
 
