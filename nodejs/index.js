@@ -24,7 +24,7 @@ app.use(bodyParser.json())
 app.use('/', (req, res, next) => {
 	next()
 	res.write(JSON.stringify({root2: 'current'}))
-	// res.end()  // called instead in the '/test' middleware
+	res.end()
 	//return
 })
 
@@ -44,7 +44,7 @@ app.use('/test', (req, res, next) => {
 	const heapUsed = Math.round(mbNow * 100) / 100
 	console.log(`after ${fullUrl} - ${heapUsed} GB`)
 	res.write(JSON.stringify({heapUsed: `${heapUsed} GB`, test2: 'current'}))
-	res.end()
+	// res.end()
 	//return
 })
 
