@@ -29,13 +29,6 @@ app.use(bodyParser.json())
  * The middleware declared last will be run first (at least the stuff after next())
  */
 
-app.use('/', (req, res, next) => {
-	next()
-	res.write(JSON.stringify({root6: 'current'}))
-	//res.end()  // NEEDS TO BE IN THE TOP-MOST MIDDLEWARE DECLARATION
-	//return   // doesn't appear to be needed
-})
-
 
 /**
  * SIMPLE MEMORY USAGE REPORTING, FIRES AFTER EVERY REQUEST ON THE /test PATH
@@ -45,7 +38,9 @@ app.use('/', (req, res, next) => {
  * On a sample workflow, the max memory usage reported was  0.02 GB
  */
 app.use('/test', (req, res, next) => {
+	console.log('[before next()]  path:  /test')
 	next()
+	console.log('[after next()]v  path:  /test')
 	// because this code is called AFTER next(), it will be fired at the end of every call so we can see how much memory we're using
 	const fullUrl = req.protocol + '://' + req.get('host') + req.originalUrl;
 	const mu = process.memoryUsage();
@@ -54,6 +49,16 @@ app.use('/test', (req, res, next) => {
 	console.log(`after ${fullUrl} - ${heapUsed} GB`)
 	res.write(JSON.stringify({heapUsed: `${heapUsed} GB`, test6: 'current'}))
 	res.end()
+	//return   // doesn't appear to be needed
+})
+
+
+app.use('/', (req, res, next) => {
+	console.log('[before next()]  path:  /')
+	next()
+	console.log('[after next()]v  path:  /')
+	res.write(JSON.stringify({root6: 'current'}))
+	//res.end()  // NEEDS TO BE IN THE TOP-MOST MIDDLEWARE DECLARATION
 	//return   // doesn't appear to be needed
 })
 
