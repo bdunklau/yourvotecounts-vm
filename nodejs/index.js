@@ -56,7 +56,7 @@ app.use('/test', (req, res, next) => {
 app.use('/', (req, res, next) => {
 	console.log('[before next()]  path:  /')
 	next()
-	console.log('[after next()]v  path:  /')
+	console.log('[after next()]   path:  /')
 	res.write(JSON.stringify({root6: 'current'}))
 	//res.end()  // NEEDS TO BE IN THE TOP-MOST MIDDLEWARE DECLARATION
 	//return   // doesn't appear to be needed
