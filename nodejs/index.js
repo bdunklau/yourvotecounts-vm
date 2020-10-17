@@ -26,6 +26,7 @@ app.use(bodyParser.json())
  */
 app.use('/', (req, res, next) => {
 	next()
+	// because this code is called AFTER next(), it will be fired at the end of every call so we can see how much memory we're using
 	const fullUrl = req.protocol + '://' + req.get('host') + req.originalUrl;
 	const mu = process.memoryUsage();
 	const mbNow = mu['heapUsed'] / 1024 / 1024 / 1024;
