@@ -29,6 +29,13 @@ app.use(bodyParser.json())
  * The middleware declared last will be run first (at least the stuff after next())
  */
 
+app.use('/', (req, res, next) => {
+	next()
+	res.write(JSON.stringify({root6: 'current'}))
+	res.end()  // NEEDS TO BE IN THE TOP-MOST MIDDLEWARE DECLARATION
+	//return   // doesn't appear to be needed
+})
+
 
 /**
  * SIMPLE MEMORY USAGE REPORTING, FIRES AFTER EVERY REQUEST ON THE /test PATH
@@ -46,17 +53,10 @@ app.use('/test', (req, res, next) => {
 	const heapUsed = Math.round(mbNow * 100) / 100
 	console.log(`after ${fullUrl} - ${heapUsed} GB`)
 	res.write(JSON.stringify({heapUsed: `${heapUsed} GB`, test6: 'current'}))
-	res.end()  // NEEDS TO BE IN THE TOP-MOST MIDDLEWARE DECLARATION
-	//return   // doesn't appear to be needed
-})
-
-
-app.use('/', (req, res, next) => {
-	next()
-	res.write(JSON.stringify({root6: 'current'}))
 	//res.end()
 	//return   // doesn't appear to be needed
 })
+
 
 
 app.get('/', function(req, res) {
@@ -643,6 +643,11 @@ app.all('/test', function(req, res) {
 
 
 
+
+app.all('/hi', function(req, res) {
+	
+	res.status(200).write(JSON.stringify({"hi": "hi"}))
+})
 
 
 
