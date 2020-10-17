@@ -32,7 +32,7 @@ app.use(bodyParser.json())
 app.use('/', (req, res, next) => {
 	next()
 	res.write(JSON.stringify({root6: 'current'}))
-	res.end()  // NEEDS TO BE IN THE TOP-MOST MIDDLEWARE DECLARATION
+	//res.end()  // NEEDS TO BE IN THE TOP-MOST MIDDLEWARE DECLARATION
 	//return   // doesn't appear to be needed
 })
 
@@ -53,7 +53,7 @@ app.use('/test', (req, res, next) => {
 	const heapUsed = Math.round(mbNow * 100) / 100
 	console.log(`after ${fullUrl} - ${heapUsed} GB`)
 	res.write(JSON.stringify({heapUsed: `${heapUsed} GB`, test6: 'current'}))
-	//res.end()
+	res.end()
 	//return   // doesn't appear to be needed
 })
 
