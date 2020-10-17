@@ -38,6 +38,7 @@ app.use('/test', (req, res, next) => {
 	console.log(`after ${fullUrl} - ${heapUsed} GB`)
 	res.write(JSON.stringify({heapUsed: `${heapUsed} GB`, test: 'current'}))
 	res.end()
+	return
 })
 
 app.use('/', (req, res, next) => {
