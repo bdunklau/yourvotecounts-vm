@@ -20,14 +20,6 @@ app.use(bodyParser.urlencoded({ extended: false }))
 // parse application/json
 app.use(bodyParser.json())
 
-
-app.use('/', (req, res, next) => {
-	next()
-	res.write(JSON.stringify({root2: 'current'}))
-	res.end()
-	//return
-})
-
 /**
  * SIMPLE MEMORY USAGE REPORTING, FIRES AFTER EVERY REQUEST ON THE /test PATH
  * 
@@ -43,10 +35,19 @@ app.use('/test', (req, res, next) => {
 	const mbNow = mu['heapUsed'] / 1024 / 1024 / 1024;
 	const heapUsed = Math.round(mbNow * 100) / 100
 	console.log(`after ${fullUrl} - ${heapUsed} GB`)
-	res.write(JSON.stringify({heapUsed: `${heapUsed} GB`, test2: 'current'}))
+	res.write(JSON.stringify({heapUsed: `${heapUsed} GB`, test3: 'current'}))
 	// res.end()
 	//return
 })
+
+
+app.use('/', (req, res, next) => {
+	next()
+	res.write(JSON.stringify({root3: 'current'}))
+	res.end()
+	//return
+})
+
 
 app.get('/', function(req, res) {
 	res.write(JSON.stringify({response: 'ok'}))
