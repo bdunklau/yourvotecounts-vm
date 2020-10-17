@@ -34,7 +34,9 @@ app.use('/', (req, res, next) => {
 	const fullUrl = req.protocol + '://' + req.get('host') + req.originalUrl;
 	const mu = process.memoryUsage();
 	const mbNow = mu['heapUsed'] / 1024 / 1024 / 1024;
-	console.log(`after ${fullUrl} - ${Math.round(mbNow * 100) / 100} GB`)
+	const heapUsed = Math.round(mbNow * 100) / 100
+	console.log(`after ${fullUrl} - ${heapUsed} GB`)
+	res.send(JSON.stringify({heapUsed: `${heapUsed} GB`}))
 })
 
 app.get('/', function(req, res) {
