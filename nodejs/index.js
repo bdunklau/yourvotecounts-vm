@@ -94,7 +94,7 @@ app.use('/', (req, res, next) => {
 	/**
 	 * If heapUsed is greater than req.body.heapThreshold
 	 */
-	const heapThreshold = parseFloat(req.body.heapThreshold)
+	const heapThreshold = req.body.heapThreshold ? parseFloat(req.body.heapThreshold) : 1 /* GB */
 	if(heap > heapThreshold) {
 		// call the fb function that will trigger an SMS message to me
 		notifyHeapWarning({heapUsed: heap, req: req, res: res})
@@ -113,6 +113,7 @@ function notifyHeapWarning(args) {
 	let formData = {
 		heapUsed: args.heapUsed,
 		heapThreshold: args.req.body.heapThreshold,
+		firebase_functions_host: args.req.body.firebase_functions_host,
 		website_domain_name: args.req.body.website_domain_name
 	}
 
