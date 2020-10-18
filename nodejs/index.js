@@ -74,9 +74,9 @@ function getUrl(req) {
   * Middleware
   */
 app.use('/', (req, res, next) => {
-	console.log('[before next()]  path:  /')
+	// console.log('[before next()]  path:  /')
 	next()
-	console.log('[after next()]   path:  /')
+	// console.log('[after next()]   path:  /')
 
     /**
 	 * YOU CANNOT ADD ANYTHING TO THE RESPONSE AFTER next() BECAUSE WE HAVE ALREADY CALLED
@@ -89,7 +89,7 @@ app.use('/', (req, res, next) => {
 	/**
 	 * Check heapUsed
 	 */
-	const heapUsed = heapUsed()
+	let heapUsed = heapUsed()
 
 	/**
 	 * If heapUsed is greater than req.body.heapThreshold
