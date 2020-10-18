@@ -21,6 +21,29 @@ app.use(bodyParser.urlencoded({ extended: false }))
 app.use(bodyParser.json())
 
 
+
+/**
+ * Returns the heap used up in GB
+ * Ref:   https://github.com/Data-Wrangling-with-JavaScript/nodejs-memory-test/blob/master/index.js
+ */
+function heapUsed() {
+	const mu = process.memoryUsage();
+	const mbNow = mu['heapUsed'] / 1024 / 1024 / 1024;
+	const heapUsed = Math.round(mbNow * 100) / 100
+	return heapUsed
+}
+
+
+/**
+ * Do we care about this?
+ * Will return the complete url
+ */
+function getUrl(req) {
+    return req.protocol + '://' + req.get('host') + req.originalUrl;
+}
+
+
+
 /**
  * NOTE ON MIDDLEWARE ********************************************************
  * Execution of middleware is dependent on the order they are declared here
@@ -80,28 +103,6 @@ app.use('/', (req, res, next) => {
 	// res.end()  // NEEDS TO BE IN THE TOP-MOST MIDDLEWARE DECLARATION
 	//return   // doesn't appear to be needed
 })
-
-
-
-/**
- * Returns the heap used up in GB
- * Ref:   https://github.com/Data-Wrangling-with-JavaScript/nodejs-memory-test/blob/master/index.js
- */
-function heapUsed() {
-	const mu = process.memoryUsage();
-	const mbNow = mu['heapUsed'] / 1024 / 1024 / 1024;
-	const heapUsed = Math.round(mbNow * 100) / 100
-	return heapUsed
-}
-
-
-/**
- * Do we care about this?
- * Will return the complete url
- */
-function getUrl(req) {
-    return req.protocol + '://' + req.get('host') + req.originalUrl;
-}
 
 
 /**
