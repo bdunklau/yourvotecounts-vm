@@ -26,11 +26,11 @@ app.use(bodyParser.json())
  * Returns the heap used up in GB
  * Ref:   https://github.com/Data-Wrangling-with-JavaScript/nodejs-memory-test/blob/master/index.js
  */
-function heapUsed() {
+var heapUsed = function() {
 	const mu = process.memoryUsage();
 	const mbNow = mu['heapUsed'] / 1024 / 1024 / 1024;
-	const heapUsed = Math.round(mbNow * 100) / 100
-	return heapUsed
+	const heap = Math.round(mbNow * 100) / 100
+	return heap
 }
 
 
@@ -89,15 +89,15 @@ app.use('/', (req, res, next) => {
 	/**
 	 * Check heapUsed
 	 */
-	var heapUsed = heapUsed()
+	var heap = heapUsed()
 
 	/**
 	 * If heapUsed is greater than req.body.heapThreshold
 	 */
 	const heapThreshold = parseFloat(req.body.heapThreshold)
-	if(heapUsed > heapThreshold) {
+	if(heap > heapThreshold) {
 		// call the fb function that will trigger an SMS message to me
-		notifyHeapWarning({heapUsed: heapUsed, req: req, res: res})
+		notifyHeapWarning({heapUsed: heap, req: req, res: res})
 	}
 
 	// res.end()  // NEEDS TO BE IN THE TOP-MOST MIDDLEWARE DECLARATION
