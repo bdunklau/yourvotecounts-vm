@@ -89,7 +89,7 @@ app.use('/', (req, res, next) => {
 	/**
 	 * Check heapUsed
 	 */
-	let heapUsed = heapUsed()
+	var heapUsed = heapUsed()
 
 	/**
 	 * If heapUsed is greater than req.body.heapThreshold
