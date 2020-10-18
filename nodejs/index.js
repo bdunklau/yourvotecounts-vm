@@ -23,49 +23,114 @@ app.use(bodyParser.json())
 
 /**
  * NOTE ON MIDDLEWARE ********************************************************
- * Response sent back appears to depend on the order the functions are declared in this file - REVERSE ORDER
- * Has nothing to do with the paths
- * The middleware at the top of this file will get called last (at least the stuff after next())
- * The middleware declared last will be run first (at least the stuff after next())
+ * Execution of middleware is dependent on the order they are declared here
+ * 
+ * So if they are declared in this order:
+ *    app.use('/', (req, res, next) => {})
+ *    app.use('/test', (req, res, next) => {})
+ * 
+ * Then the output will look like this:
+ * 		[before next()]  path:  /
+		[before next()]  path:  /test
+		[after next()]   path:  /test
+		[after next()]   path:  /
+ 
+    If the middleware is declared in this order:
+ *    app.use('/test', (req, res, next) => {})
+ *    app.use('/', (req, res, next) => {})
+ * 
+ * Then the output will look like this:
+ * 		[before next()]  path:  /test
+		[before next()]  path:  /
+		[after next()]   path:  /
+		[after next()]   path:  /test
  */
 
 
+ /**
+  * Middleware
+  */
 app.use('/', (req, res, next) => {
 	console.log('[before next()]  path:  /')
 	next()
 	console.log('[after next()]   path:  /')
-	res.write(JSON.stringify({root6: 'current'}))
-	res.end()  // NEEDS TO BE IN THE TOP-MOST MIDDLEWARE DECLARATION
+
+    /**
+	 * YOU CANNOT ADD ANYTHING TO THE RESPONSE AFTER next() BECAUSE WE HAVE ALREADY CALLED
+	 * res.send()
+	 * YOU WOULD HAVE TO USE res.write() BUT WE DON'T REALLY NEED TO WRITE THE HEAP USED OR THE
+	 * SIZE OF THE nohup.out FILE.  WE JUST NEED TO TAKE APPROPRIATE ACTION WHEN THEIR SIZES
+	 * CROSS CERTAIN THRESHOLDS
+	 */
+
+	/**
+	 * Check heapUsed
+	 */
+	const heapUsed = heapUsed()
+
+	/**
+	 * If heapUsed is greater than req.body.heapThreshold
+	 */
+	const heapThreshold = parseFloat(req.body.heapThreshold)
+	if(heapUsed > heapThreshold) {
+		// call the fb function that will trigger an SMS message to me
+		notifyHeapWarning({heapUsed: heapUsed, req: req, res: res})
+	}
+
+	// res.end()  // NEEDS TO BE IN THE TOP-MOST MIDDLEWARE DECLARATION
 	//return   // doesn't appear to be needed
 })
+
 
 
 /**
- * SIMPLE MEMORY USAGE REPORTING, FIRES AFTER EVERY REQUEST ON THE /test PATH
- * 
+ * Returns the heap used up in GB
  * Ref:   https://github.com/Data-Wrangling-with-JavaScript/nodejs-memory-test/blob/master/index.js
- * 
- * On a sample workflow, the max memory usage reported was  0.02 GB
  */
-app.use('/test', (req, res, next) => {
-	console.log('[before next()]  path:  /test')
-	next()
-	console.log('[after next()]   path:  /test')
-	// because this code is called AFTER next(), it will be fired at the end of every call so we can see how much memory we're using
-	const fullUrl = req.protocol + '://' + req.get('host') + req.originalUrl;
+function heapUsed() {
 	const mu = process.memoryUsage();
 	const mbNow = mu['heapUsed'] / 1024 / 1024 / 1024;
 	const heapUsed = Math.round(mbNow * 100) / 100
-	console.log(`after ${fullUrl} - ${heapUsed} GB`)
-	res.write(JSON.stringify({heapUsed: `${heapUsed} GB`, test6: 'current'}))
-	//res.end()
-	//return   // doesn't appear to be needed
-})
+	return heapUsed
+}
+
+
+/**
+ * Do we care about this?
+ * Will return the complete url
+ */
+function getUrl(req) {
+    return req.protocol + '://' + req.get('host') + req.originalUrl;
+}
+
+
+/**
+ * call the fb function that will trigger an SMS message to me
+ */
+function notifyHeapWarning(args) {
+    
+	let formData = {
+		heapUsed: args.heapUsed,
+		heapThreshold: args.req.body.heapThreshold,
+		website_domain_name: args.req.body.website_domain_name
+	}
+
+	request.post(
+		{
+			url: `https://${args.req.body.firebase_functions_host}/notifyHeapWarning`,
+			json: formData // 'json' attr name is KEY HERE, don't use 'form'
+		},
+		function (err, httpResponse, body) {
+			// TODO what here?  Can't do res.send() because that's already been called
+			// return args.res.status(200).send(JSON.stringify({"result": "ok"}));
+		}
+	);
+}
 
 
 
 app.get('/', function(req, res) {
-	res.write(JSON.stringify({response: 'ok'}))
+	res.send(JSON.stringify({response: 'ok'}))
 })
 
 
@@ -104,14 +169,14 @@ app.post('/downloadComposition', function(req, res) {
 	})
 	.on('error', function(err) {
 	    if(err) {
-	        res.write(JSON.stringify({error: err, when: 'on error'}))	
+	        res.send(JSON.stringify({error: err, when: 'on error'}))	
 	    }
 	})
 	.on('end', function() {
 	})
 	.pipe(
 	    fs.createWriteStream(compositionFile).on('finish', function() {
-			//return res.write(JSON.stringify({compositionFile: compositionFile})) // could probably just return {res: 'ok'}
+			//return res.send(JSON.stringify({compositionFile: compositionFile})) // could probably just return {res: 'ok'}
 
 			let formData = {
 				compositionFile: compositionFile,
@@ -131,10 +196,10 @@ app.post('/downloadComposition', function(req, res) {
 				function (err, httpResponse, body) {
 					if(err) {
 						// can only send back 2xx responses because of twilio
-						return res.status(200).write(JSON.stringify({"error": err, "vm url": `https://${req.body.firebase_functions_host}${req.body.firebase_function}`}));
+						return res.status(200).send(JSON.stringify({"error": err, "vm url": `https://${req.body.firebase_functions_host}${req.body.firebase_function}`}));
 					}
 					//console.log(err, body);
-					else return res.status(200).write(JSON.stringify({"result": "ok"}));
+					else return res.status(200).send(JSON.stringify({"result": "ok"}));
 				}
 			);
 
@@ -153,7 +218,7 @@ app.post('/downloadComposition', function(req, res) {
  */
 app.all('/cutVideo', function(req, res) {
 	if(req.query.test) {
-		res.status(200).write(JSON.stringify({"test": req.query.test}))
+		res.status(200).send(JSON.stringify({"test": req.query.test}))
 		return
 	}
 
@@ -239,10 +304,10 @@ app.all('/cutVideo', function(req, res) {
 		function (err, httpResponse, body) {
 			if(err) {
 				// can't send 500's back - twilio doesn't like that
-				return res.status(200).write(JSON.stringify({"error": err, "vm url": req.body.callbackUrl}));
+				return res.status(200).send(JSON.stringify({"error": err, "vm url": req.body.callbackUrl}));
 			}
 			//console.log(err, body);
-			else return res.status(200).write(JSON.stringify({"result": "ok"}));
+			else return res.status(200).send(JSON.stringify({"result": "ok"}));
 		}
 	);
 
@@ -343,15 +408,15 @@ app.all('/createHls', async function(req, res) {
 			function (err, httpResponse, body) {
 				if(err) {
 					// can't send 500's back - twilio doesn't like that
-					return res.status(200).write(JSON.stringify({"error": err, "vm url": req.body.callbackUrl}));
+					return res.status(200).send(JSON.stringify({"error": err, "vm url": req.body.callbackUrl}));
 				}
 				//console.log(err, body);
-				else return res.status(200).write(JSON.stringify({"result": "ok"}));
+				else return res.status(200).send(JSON.stringify({"result": "ok"}));
 			}
 		);
 		
 
-		//return res.status(200).write('done')
+		//return res.status(200).send('done')
 
 	}); // fs.readdir()
 	
@@ -368,7 +433,7 @@ app.all('/createHls', async function(req, res) {
  * /cutVideoComplete is called by /cutVideo, which is just above this function
  */
 app.all('/uploadToFirebaseStorage', async function(req, res) {
-	//DON'T short-circuit anymore   if(true) return res.status(200).write(JSON.stringify({"result": "ok"})); // short-circuit this whole function
+	//DON'T short-circuit anymore   if(true) return res.status(200).send(JSON.stringify({"result": "ok"})); // short-circuit this whole function
 
     /**
 	 * Passed in from /createHlsComplete
@@ -448,15 +513,15 @@ app.all('/uploadToFirebaseStorage', async function(req, res) {
 		function (err, httpResponse, body) {
 			if(err) {
 				// can't send 500's back - twilio doesn't like that
-				return res.status(200).write(JSON.stringify({"error": err, "vm url": req.body.callbackUrl}));
+				return res.status(200).send(JSON.stringify({"error": err, "vm url": req.body.callbackUrl}));
 			}
 			//console.log(err, body);
-			else return res.status(200).write(JSON.stringify({"result": "ok"}));
+			else return res.status(200).send(JSON.stringify({"result": "ok"}));
 		}
 	);
   
 
-	//return res.status(200).write(JSON.stringify({"result": `uploaded ${req.query.file}`}))
+	//return res.status(200).send(JSON.stringify({"result": `uploaded ${req.query.file}`}))
 
 })
 
@@ -559,10 +624,10 @@ app.all('/uploadScreenshotToStorage', async function(req, res) {
 		function (err, httpResponse, body) {
 			if(err) {
 				// can't send 500's back - twilio doesn't like that
-				return res.status(200).write(JSON.stringify({"error": err, "vm url": req.body.callbackUrl}));
+				return res.status(200).send(JSON.stringify({"error": err, "vm url": req.body.callbackUrl}));
 			}
 			//console.log(err, body);
-			else return res.status(200).write(JSON.stringify({"result": "ok"}));
+			else return res.status(200).send(JSON.stringify({"result": "ok"}));
 		}
 	);
 })
@@ -573,7 +638,7 @@ app.all('/uploadScreenshotToStorage', async function(req, res) {
  * Delete both the original composition file and the -output.mp4 composition file
  */
 app.all('/deleteVideo', async function(req, res) {
-	//DON'T short-circuit anymore   if(true) return res.status(200).write(JSON.stringify({"result": "ok"})); // short-circuit this whole function
+	//DON'T short-circuit anymore   if(true) return res.status(200).send(JSON.stringify({"result": "ok"})); // short-circuit this whole function
 
 	/**
 	  Passed in from /uploadToFirebaseStorageComplete 
@@ -632,9 +697,9 @@ app.all('/deleteVideo', async function(req, res) {
 			console.log(`AFTER GOING TO ${req.body.callbackUrl}:  `, err, body);
 			if(err) {
 				// can't send 500's back - twilio doesn't like that
-				return res.status(200).write(JSON.stringify({"error": err, "vm url": req.body.callbackUrl}));
+				return res.status(200).send(JSON.stringify({"error": err, "vm url": req.body.callbackUrl}));
 			}
-			else return res.status(200).write(JSON.stringify({"result": "ok"}));
+			else return res.status(200).send(JSON.stringify({"result": "ok"}));
 		}
 	);
 })
@@ -643,7 +708,7 @@ app.all('/deleteVideo', async function(req, res) {
 
 app.all('/test', function(req, res) {
 	
-	res.status(200).write(JSON.stringify({"result": "ok"}))
+	res.status(200).send(JSON.stringify({"result": "ok"}))
 })
 
 
@@ -651,7 +716,7 @@ app.all('/test', function(req, res) {
 
 app.all('/hi', function(req, res) {
 	
-	res.status(200).write(JSON.stringify({"hi": "hi"}))
+	res.status(200).send(JSON.stringify({"hi": "hi"}))
 })
 
 
@@ -671,7 +736,7 @@ app.all('/download', function(req, res) {
 
 app.all('/env', async function(req, res) {
     
-	res.status(200).write(`env var is: ${req.body.envvar}`)
+	res.status(200).send(`env var is: ${req.body.envvar}`)
 })
 
 
