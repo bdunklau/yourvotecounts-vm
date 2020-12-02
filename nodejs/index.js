@@ -741,7 +741,9 @@ app.all('/download', function(req, res) {
 
 
 
-
+/**
+ * verifies that pm2 actually restarts the node process when it crashes
+ */
 app.all('/crash', function(req, res) {
 	console.log((new Date())+'you asked for a crash - you got !')
 	res.status(200).send(JSON.stringify({"crash": "crash"}))
