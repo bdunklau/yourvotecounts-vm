@@ -1,4 +1,4 @@
 #!/bin/bash
 git pull origin dev
-./stop-node
 
+# pm2 detects changes so no need to do anything else
