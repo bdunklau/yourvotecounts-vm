@@ -143,7 +143,7 @@ app.get('/', function(req, res) {
   * When we're done, we make a post request back to the firebase function twilio-vodeo.js:downloadComplete()
   */
 app.post('/downloadComposition', function(req, res) {
-	
+
 	/**
 	 Passed in from twilio-video.js:twilioCallback() - 'composition-available' section
 
@@ -181,7 +181,7 @@ app.post('/downloadComposition', function(req, res) {
 			//return res.send(JSON.stringify({compositionFile: compositionFile})) // could probably just return {res: 'ok'}
 
 			let formData = {
-				compositionFile: compositionFile,
+				compositionFile: compositionFile, // ex:  "/home/bdxxxxxxxx/videos/CJaab95xxxxxxxxxxxxxxc0c718dc4630.mp4"
 				CompositionSid: req.body.CompositionSid,
 				RoomSid: req.body.RoomSid,
 				tempEditFolder:  `/home/bdunklau/videos/${req.body.CompositionSid}`,
@@ -202,8 +202,11 @@ app.post('/downloadComposition', function(req, res) {
 					}
 					//console.log(err, body);
 					else {
-						console.log('/downloadComposition:  ', {"result": "downloadComposition complete", compositionFile: compositionFile})
-						return res.status(200).send(JSON.stringify({"result": "downloadComposition complete", compositionFile: compositionFile}));
+						let theResult = {"result": "downloadComposition complete", 
+										 compositionFile: compositionFile,
+										 CompositionSid: req.body.CompositionSid}
+						console.log('/downloadComposition:  ', theResult)
+						return res.status(200).send(JSON.stringify(theResult));
 					}
 				}
 			);
@@ -734,6 +737,15 @@ app.all('/download', function(req, res) {
 	const file = `/home/bdunklau/videos/${req.query.file}`;
 	res.download(file); // Set disposition and send it.
 });
+
+
+
+
+
+app.all('/crash', function(req, res) {
+	res.status(200).send(JSON.stringify({"crash": "crash"}))
+	process.exit(1/*= fatal*/)
+})
 
 
 
