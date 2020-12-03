@@ -418,7 +418,7 @@ app.all('/createHls', async function(req, res) {
 					// can't send 500's back - twilio doesn't like that
 					return res.status(200).send(JSON.stringify({"error": err, "vm url": req.body.callbackUrl}));
 				}
-				//console.log(err, body);
+				// "body" in twilio-video.js:createHls()
 				else return res.status(200).send(JSON.stringify({"result": "createHls (vm)", "uploadFiles": uploadFiles}));
 			}
 		);
