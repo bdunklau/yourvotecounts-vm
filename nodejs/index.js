@@ -419,7 +419,7 @@ app.all('/createHls', async function(req, res) {
 					return res.status(200).send(JSON.stringify({"error": err, "vm url": req.body.callbackUrl}));
 				}
 				//console.log(err, body);
-				else return res.status(200).send(JSON.stringify({"result": "createHls complete"}));
+				else return res.status(200).send(JSON.stringify({"result": "createHls complete", "uploadFiles": uploadFiles}));
 			}
 		);
 		
