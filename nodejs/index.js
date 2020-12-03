@@ -315,7 +315,7 @@ app.all('/cutVideo', function(req, res) {
 				return res.status(200).send(JSON.stringify({"error": err, "vm url": req.body.callbackUrl}));
 			}
 			//console.log(err, body);
-			else return res.status(200).send(JSON.stringify({"result": "cutVideo complete"}));
+			else return res.status(200).send(JSON.stringify({"result": "cutVideo complete", "outputFile": outputFile}));
 		}
 	);
 
