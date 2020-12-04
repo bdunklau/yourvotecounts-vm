@@ -476,7 +476,7 @@ app.all('/uploadToFirebaseStorage', async function(req, res) {
 
 	let storageItems = []
 	let bucketName = `${req.body.projectId}.appspot.com`
-    _.each(req.body.uploadFiles, /*async*/ file => {
+    _.each(req.body.uploadFiles, async file => {
 		console.log('inside _.each()')
 		// Uploads a local file to the bucket
 		let folder = req.body.CompositionSid
