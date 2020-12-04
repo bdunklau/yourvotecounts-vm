@@ -527,7 +527,10 @@ app.all('/uploadToFirebaseStorage', async function(req, res) {
 				return res.status(200).send(JSON.stringify({"error": err, "vm url": req.body.callbackUrl}));
 			}
 			//console.log(err, body);
-			else return res.status(200).send(JSON.stringify({"body": body, "result": "uploadToFirebaseStorage complete", "storageItems": storageItems}));
+			else return res.status(200).send(JSON.stringify({"body": body, 
+															 "result": "uploadToFirebaseStorage complete", 
+															 "uploadFiles": req.body.uploadFiles,
+															 "storageItems": storageItems}));
 		}
 	);
   
