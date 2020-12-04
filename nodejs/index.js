@@ -483,7 +483,6 @@ app.all('/uploadToFirebaseStorage', async function(req, res) {
 	})
 
     _.each(req.body.uploadFiles, async file => {
-		console.log('inside _.each()')
 		// Uploads a local file to the bucket
 		let folder = req.body.CompositionSid
 		await storage.bucket(bucketName).upload(file.path, {
