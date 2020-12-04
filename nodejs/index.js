@@ -179,12 +179,12 @@ app.post('/downloadComposition', function(req, res) {
 	.pipe(
 	    fs.createWriteStream(compositionFile).on('finish', function() {
 			//return res.send(JSON.stringify({compositionFile: compositionFile})) // could probably just return {res: 'ok'}
-
+            let tempEditFolder = `/home/bdunklau/videos/${req.body.CompositionSid}`
 			let formData = {
 				compositionFile: compositionFile, // ex:  "/home/bdxxxxxxxx/videos/CJaab95xxxxxxxxxxxxxxc0c718dc4630.mp4"
 				CompositionSid: req.body.CompositionSid,
 				RoomSid: req.body.RoomSid,
-				tempEditFolder:  `/home/bdunklau/videos/${req.body.CompositionSid}`,
+				tempEditFolder:  tempEditFolder,
 				downloadComplete: true,
 				website_domain_name: req.body.website_domain_name
 			}
@@ -203,6 +203,7 @@ app.post('/downloadComposition', function(req, res) {
 					//console.log(err, body);
 					else {
 						let theResult = {"result": "downloadComposition complete", 
+						                 tempEditFolder:  tempEditFolder,
 										 compositionFile: compositionFile,
 										 CompositionSid: req.body.CompositionSid}
 						console.log('/downloadComposition:  ', theResult)
@@ -473,6 +474,7 @@ app.all('/uploadToFirebaseStorage', async function(req, res) {
 		keyFilename: `/home/bdunklau/${req.body.storage_keyfile}`
 	});
 
+	let storageItems = []
 	let bucketName = `${req.body.projectId}.appspot.com`
     _.each(req.body.uploadFiles, async file => {
 		// Uploads a local file to the bucket
@@ -491,6 +493,7 @@ app.all('/uploadToFirebaseStorage', async function(req, res) {
 			},
 		});
 
+		storageItems.push({bucketName: bucketName, folder: folder, filename: file.name})
 		await storage.bucket(bucketName).file(folder+"/"+file.name).makePublic();
 
 	})
@@ -524,7 +527,7 @@ app.all('/uploadToFirebaseStorage', async function(req, res) {
 				return res.status(200).send(JSON.stringify({"error": err, "vm url": req.body.callbackUrl}));
 			}
 			//console.log(err, body);
-			else return res.status(200).send(JSON.stringify({"result": "uploadToFirebaseStorage complete"}));
+			else return res.status(200).send(JSON.stringify({"result": "uploadToFirebaseStorage complete", "storageItems": storageItems}));
 		}
 	);
   
