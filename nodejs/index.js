@@ -476,6 +476,12 @@ app.all('/uploadToFirebaseStorage', async function(req, res) {
 
 	let storageItems = []
 	let bucketName = `${req.body.projectId}.appspot.com`
+	
+    _.each(req.body.uploadFiles, async file => {
+		let folder = req.body.CompositionSid
+		storageItems.push({bucketName: bucketName, folder: folder, filename: file.name})
+	})
+
     _.each(req.body.uploadFiles, async file => {
 		console.log('inside _.each()')
 		// Uploads a local file to the bucket
@@ -495,7 +501,6 @@ app.all('/uploadToFirebaseStorage', async function(req, res) {
 		});
 
 		await storage.bucket(bucketName).file(folder+"/"+file.name).makePublic();
-		storageItems.push({bucketName: bucketName, folder: folder, filename: file.name})
 
 	})
 
