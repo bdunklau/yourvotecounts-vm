@@ -479,7 +479,7 @@ app.all('/uploadToFirebaseStorage', async function(req, res) {
     _.each(req.body.uploadFiles, /*async*/ file => {
 		console.log('inside _.each()')
 		// Uploads a local file to the bucket
-		// let folder = req.body.CompositionSid
+		let folder = req.body.CompositionSid
 		// await storage.bucket(bucketName).upload(file.path, {
 		// 	destination: folder+"/"+file.name,
 		// 	// Support for HTTP requests made with `Accept-Encoding: gzip`
