@@ -651,7 +651,13 @@ app.all('/uploadScreenshotToStorage', async function(req, res) {
 				return res.status(200).send(JSON.stringify({"error": err, "vm url": req.body.callbackUrl}));
 			}
 			//console.log(err, body);
-			else return res.status(200).send(JSON.stringify({"result": "uploadScreenshotToStorage complete"}));
+			else return res.status(200).send(JSON.stringify({"result": "uploadScreenshotToStorage complete", 
+															 "screenshotDetails": {
+																		 "budketName": bucketName,
+																		 "folder": folder,
+																		 "filename": `${req.body.CompositionSid}.jpg`
+															         }
+															}));
 		}
 	);
 })
