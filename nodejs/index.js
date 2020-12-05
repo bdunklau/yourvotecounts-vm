@@ -444,6 +444,7 @@ app.all('/createHls', async function(req, res) {
 app.all('/uploadToFirebaseStorage', async function(req, res) {
 	//DON'T short-circuit anymore   if(true) return res.status(200).send(JSON.stringify({"result": "ok"})); // short-circuit this whole function
 
+	console.log('uploadToFirebaseStorage: begin')
     /**
 	 * Passed in from /createHlsComplete
 	  
