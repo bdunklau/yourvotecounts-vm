@@ -528,14 +528,18 @@ app.all('/uploadToFirebaseStorage', async function(req, res) {
 		},
 		function (err, httpResponse, body) {
 			if(err) {
+				console.log('uploadToFirebaseStorage: returning err: ', err)
 				// can't send 500's back - twilio doesn't like that
 				return res.status(200).send(JSON.stringify({"error": err, "vm url": req.body.callbackUrl}));
 			}
 			//console.log(err, body);
-			else return res.status(200).send(JSON.stringify({"body": body, 
+			else {
+				console.log('uploadToFirebaseStorage: returning ok body: ', body)
+				return res.status(200).send(JSON.stringify({"body": body, 
 															 "result": "uploadToFirebaseStorage complete", 
 															 "uploadFiles": req.body.uploadFiles,
 															 "storageItems": storageItems}));
+			}
 		}
 	);
   
