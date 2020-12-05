@@ -653,7 +653,7 @@ app.all('/uploadScreenshotToStorage', async function(req, res) {
 			//console.log(err, body);
 			else return res.status(200).send(JSON.stringify({"result": "uploadScreenshotToStorage complete", 
 															 "screenshotDetails": {
-																		 "budketName": bucketName,
+																		 "bucketName": bucketName,
 																		 "folder": folder,
 																		 "filename": `${req.body.CompositionSid}.jpg`
 															         }
