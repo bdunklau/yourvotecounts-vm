@@ -815,6 +815,7 @@ app.all('/ping', function(req, res) {
 	// }
 
 	// setTimeout(func, 10000)
+	console.log((new Date())+' /ping called')
 	return res.status(200).send(JSON.stringify({"ping": "ping back"}))
 
 })
