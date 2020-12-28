@@ -46,7 +46,9 @@ function getUrl(req) {
 
 
 // use it before all route definitions
-app.use(cors({origin: 'http://localhost:4200'}));
+// dyamic/multiple origins are also possible:  https://www.npmjs.com/package/cors#configuring-cors-w-dynamic-origin
+app.use(cors());
+// app.use(cors({origin: 'http://localhost:4200'}));  // another option
 
 
 
