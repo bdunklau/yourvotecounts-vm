@@ -795,26 +795,27 @@ app.all('/env', async function(req, res) {
  */
 app.all('/ping', function(req, res) {
 
-	let formData = {}
+	// let formData = {}
 	
-	let func = function() {
-		request.post(
-			{
-				url: req.body.callbackUrl,
-				json: formData // 'json' attr name is KEY HERE, don't use 'form'
-			},
-			function (err, httpResponse, body) {
-				console.log(`AFTER GOING TO ${req.body.callbackUrl}:  `, err, body);
-				if(err) {
-					// can't send 500's back - twilio doesn't like that
-					return res.status(200).send(JSON.stringify({"ping": "error", "error": err}));
-				}
-				else return res.status(200).send(JSON.stringify({"ping": "ping back"}))
-			}
-		);
-	}
+	// let func = function() {
+	// 	request.post(
+	// 		{
+	// 			url: req.body.callbackUrl,
+	// 			json: formData // 'json' attr name is KEY HERE, don't use 'form'
+	// 		},
+	// 		function (err, httpResponse, body) {
+	// 			console.log(`AFTER GOING TO ${req.body.callbackUrl}:  `, err, body);
+	// 			if(err) {
+	// 				// can't send 500's back - twilio doesn't like that
+	// 				return res.status(200).send(JSON.stringify({"ping": "error", "error": err}));
+	// 			}
+	// 			else return res.status(200).send(JSON.stringify({"ping": "ping back"}))
+	// 		}
+	// 	);
+	// }
 
-	setTimeout(func, 10000)
+	// setTimeout(func, 10000)
+	return res.status(200).send(JSON.stringify({"ping": "ping back"}))
 
 })
 
