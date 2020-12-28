@@ -13,6 +13,7 @@
       "express": "^4.16.1",
       "fs": "0.0.1-security",
       "lodash": "^4.17.10",
+      "node-fetch": "^2.6.1",
       "path": "^0.12.7",
       "request": "^2.88.0",
       "request-progress": "^3.0.0",

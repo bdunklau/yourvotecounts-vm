@@ -816,6 +816,9 @@ app.all('/ping', function(req, res) {
 
 	// setTimeout(func, 10000)
 	console.log((new Date())+' /ping called')
+	// yourvotecounts : admin.js : /pingVm
+	console.log(`${new Date()} callback:  https://${req.query.firebase_functions_host}/${req.queryfunction}`)
+
 	return res.status(200).send(JSON.stringify({"ping": "ping back"}))
 
 })
@@ -825,4 +828,8 @@ app.all('/ping', function(req, res) {
 
 app.listen(7000, function() {
     console.log('app listening on port 7000')
+	const theResponse = await fetch('https://us-central1-yourvotecounts-dev.cloudfunctions.net/pingVm');
+	const html = await theResponse.text();
+	let vmResponse = JSON.parse(html)
+	return res.status(200).send(vmResponse);
 })
