@@ -826,7 +826,7 @@ app.all('/ping', function(req, res) {
 
 
 
-app.listen(7000, function() {
+app.listen(7000, async function() {
     console.log('app listening on port 7000')
 	const theResponse = await fetch('https://us-central1-yourvotecounts-dev.cloudfunctions.net/pingVm');
 	const html = await theResponse.text();
