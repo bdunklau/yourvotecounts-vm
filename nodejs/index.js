@@ -796,7 +796,7 @@ app.all('/env', async function(req, res) {
  */
 app.all('/ping', function(req, res) {
 
-	return res.status(200).send(JSON.stringify({"ping": "ping back"}))
+	return res.status(200).send(JSON.stringify({"up": true}))
 
 })
 
