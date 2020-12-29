@@ -827,9 +827,11 @@ app.all('/ping', function(req, res) {
 
 
 app.listen(7000, async function() {
-    console.log('app listening on port 7000')
-	const theResponse = await fetch('https://us-central1-yourvotecounts-dev.cloudfunctions.net/pingVm');
+	console.log('app listening on port 7000')
+	let furl = 'https://us-central1-yourvotecounts-dev.cloudfunctions.net/pingVm'
+	const theResponse = await fetch(furl);
 	const html = await theResponse.text();
+	console.log(`HERE'S WHAT WE GOT BACK FROM ${furl}: ${html}`)
 	let vmResponse = JSON.parse(html)
 	return res.status(200).send(vmResponse);
 })
