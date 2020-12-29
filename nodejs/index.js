@@ -813,6 +813,6 @@ app.listen(7000, async function() {
 	/**
 	 * If we had a dev and prod vm instance, we wouldn't have to do this...
 	 */
-    await initialUrl('https://us-central1-yourvotecounts-dev.cloudfunctions.net/pingVm')
-    await initialUrl('https://us-central1-yourvotecounts-bd737.cloudfunctions.net/pingVm')
+    await initialPing('https://us-central1-yourvotecounts-dev.cloudfunctions.net/pingVm')
+    await initialPing('https://us-central1-yourvotecounts-bd737.cloudfunctions.net/pingVm')
 })
