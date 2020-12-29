@@ -794,9 +794,9 @@ app.all('/env', async function(req, res) {
 /**
  * yourvotecounts : admin.js : pingVm()
  */
-app.all('/ping', async function(req, res) {
+app.all('/ping', function(req, res) {
 
-	setTimeout(() => {
+	setTimeout(async () => {
 		console.log((new Date())+' /ping called')
 		// yourvotecounts : admin.js : /pingVm
 		let callbackUrl = `https://${req.query.firebase_functions_host}/${req.query.function}`
