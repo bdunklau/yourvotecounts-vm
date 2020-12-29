@@ -801,12 +801,18 @@ app.all('/ping', function(req, res) {
 })
 
 
+initialPing = async (url) => {
+	const theResponse = await fetch(url);
+	const html = await theResponse.text();
+	console.log(`HERE'S WHAT WE GOT BACK FROM ${url}: ${html}`)
+}
 
 
 app.listen(7000, async function() {
 	console.log('app listening on port 7000')
-	let furl = 'https://us-central1-yourvotecounts-dev.cloudfunctions.net/pingVm'
-	const theResponse = await fetch(furl);
-	const html = await theResponse.text();
-	console.log(`HERE'S WHAT WE GOT BACK FROM ${furl}: ${html}`)
+	/**
+	 * If we had a dev and prod vm instance, we wouldn't have to do this...
+	 */
+    await initialPing('https://us-central1-yourvotecounts-dev.cloudfunctions.net/pingVm')
+    await initialPing('https://us-central1-yourvotecounts-bd737.cloudfunctions.net/pingVm')
 })
