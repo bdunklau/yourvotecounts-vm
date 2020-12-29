@@ -794,7 +794,7 @@ app.all('/env', async function(req, res) {
 /**
  * yourvotecounts : admin.js : pingVm()
  */
-app.all('/ping', function(req, res) {
+app.all('/ping', async function(req, res) {
 
 	setTimeout(() => {
 		console.log((new Date())+' /ping called')
