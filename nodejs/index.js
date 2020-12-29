@@ -7,6 +7,7 @@ var progress = require('request-progress')
 var fs = require('fs')
 const path = require('path')
 var cors = require('cors');
+const fetch = require('node-fetch');
 
 
 var bodyParser = require('body-parser')
