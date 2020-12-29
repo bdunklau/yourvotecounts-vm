@@ -799,7 +799,7 @@ app.all('/ping', function(req, res) {
 	setTimeout(() => {
 		console.log((new Date())+' /ping called')
 		// yourvotecounts : admin.js : /pingVm
-		console.log(`${new Date()} callback:  https://${req.query.firebase_functions_host}/${req.queryfunction}`)
+		console.log(`${new Date()} callback:  https://${req.query.firebase_functions_host}/${req.query.function}`)
 
 		return res.status(200).send(JSON.stringify({"ping": "ping back"}))
 
