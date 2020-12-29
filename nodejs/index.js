@@ -833,6 +833,4 @@ app.listen(7000, async function() {
 	const theResponse = await fetch(furl);
 	const html = await theResponse.text();
 	console.log(`HERE'S WHAT WE GOT BACK FROM ${furl}: ${html}`)
-	let vmResponse = JSON.parse(html)
-	return res.status(200).send(vmResponse);
 })
