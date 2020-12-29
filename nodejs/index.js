@@ -6,6 +6,9 @@ var request = require('request')
 var progress = require('request-progress')
 var fs = require('fs')
 const path = require('path')
+var cors = require('cors');
+const fetch = require('node-fetch');
+
 
 var bodyParser = require('body-parser')
 // Imports the Google Cloud client library
@@ -19,6 +22,123 @@ app.use(bodyParser.urlencoded({ extended: false }))
 
 // parse application/json
 app.use(bodyParser.json())
+
+
+
+/**
+ * Returns the heap used up in GB
+ * Ref:   https://github.com/Data-Wrangling-with-JavaScript/nodejs-memory-test/blob/master/index.js
+ */
+var heapUsed = function() {
+	const mu = process.memoryUsage();
+	const mbNow = mu['heapUsed'] / 1024 / 1024 / 1024;
+	const heap = Math.round(mbNow * 100) / 100
+	return heap
+}
+
+
+/**
+ * Do we care about this?
+ * Will return the complete url
+ */
+function getUrl(req) {
+    return req.protocol + '://' + req.get('host') + req.originalUrl;
+}
+
+
+// use it before all route definitions
+// dyamic/multiple origins are also possible:  https://www.npmjs.com/package/cors#configuring-cors-w-dynamic-origin
+app.use(cors());
+// app.use(cors({origin: 'http://localhost:4200'}));  // another option
+
+
+
+/**
+ * NOTE ON MIDDLEWARE ********************************************************
+ * Execution of middleware is dependent on the order they are declared here
+ * 
+ * So if they are declared in this order:
+ *    app.use('/', (req, res, next) => {})
+ *    app.use('/test', (req, res, next) => {})
+ * 
+ * Then the output will look like this:
+ * 		[before next()]  path:  /
+		[before next()]  path:  /test
+		[after next()]   path:  /test
+		[after next()]   path:  /
+ 
+    If the middleware is declared in this order:
+ *    app.use('/test', (req, res, next) => {})
+ *    app.use('/', (req, res, next) => {})
+ * 
+ * Then the output will look like this:
+ * 		[before next()]  path:  /test
+		[before next()]  path:  /
+		[after next()]   path:  /
+		[after next()]   path:  /test
+ */
+
+
+ /**
+  * Middleware
+  */
+app.use('/', (req, res, next) => {
+	// console.log('[before next()]  path:  /')
+	next()
+	// console.log('[after next()]   path:  /')
+
+    /**
+	 * YOU CANNOT ADD ANYTHING TO THE RESPONSE AFTER next() BECAUSE WE HAVE ALREADY CALLED
+	 * res.send()
+	 * YOU WOULD HAVE TO USE res.write() BUT WE DON'T REALLY NEED TO WRITE THE HEAP USED OR THE
+	 * SIZE OF THE nohup.out FILE.  WE JUST NEED TO TAKE APPROPRIATE ACTION WHEN THEIR SIZES
+	 * CROSS CERTAIN THRESHOLDS
+	 */
+
+	/**
+	 * Check heapUsed
+	 */
+	var heap = heapUsed()
+
+	/**
+	 * If heapUsed is greater than req.body.heapThreshold
+	 */
+	const heapThreshold = req.body.heapThreshold ? parseFloat(req.body.heapThreshold) : 1 /* GB */
+	if(heap > heapThreshold) {
+		// call the fb function that will trigger an SMS message to me
+		notifyHeapWarning({heapUsed: heap, req: req, res: res})
+	}
+
+	// res.end()  // NEEDS TO BE IN THE TOP-MOST MIDDLEWARE DECLARATION
+	//return   // doesn't appear to be needed
+})
+
+
+/**
+ * call the fb function that will trigger an SMS message to me
+ */
+function notifyHeapWarning(args) {
+    
+	let formData = {
+		heapUsed: args.heapUsed,
+		heapThreshold: args.req.body.heapThreshold,
+		firebase_functions_host: args.req.body.firebase_functions_host,
+		website_domain_name: args.req.body.website_domain_name
+	}
+
+	request.post(
+		{
+			url: `https://${args.req.body.firebase_functions_host}/notifyHeapWarning`,
+			json: formData // 'json' attr name is KEY HERE, don't use 'form'
+		},
+		function (err, httpResponse, body) {
+			// TODO what here?  Can't do res.send() because that's already been called
+			// return args.res.status(200).send(JSON.stringify({"result": "ok"}));
+		}
+	);
+}
+
+
 
 app.get('/', function(req, res) {
 	res.send(JSON.stringify({response: 'ok'}))
@@ -68,12 +188,12 @@ app.post('/downloadComposition', function(req, res) {
 	.pipe(
 	    fs.createWriteStream(compositionFile).on('finish', function() {
 			//return res.send(JSON.stringify({compositionFile: compositionFile})) // could probably just return {res: 'ok'}
-
+            let tempEditFolder = `/home/bdunklau/videos/${req.body.CompositionSid}`
 			let formData = {
-				compositionFile: compositionFile,
+				compositionFile: compositionFile, // ex:  "/home/bdxxxxxxxx/videos/CJaab95xxxxxxxxxxxxxxc0c718dc4630.mp4"
 				CompositionSid: req.body.CompositionSid,
 				RoomSid: req.body.RoomSid,
-				tempEditFolder:  `/home/bdunklau/videos/${req.body.CompositionSid}`,
+				tempEditFolder:  tempEditFolder,
 				downloadComplete: true,
 				website_domain_name: req.body.website_domain_name
 			}
@@ -90,7 +210,14 @@ app.post('/downloadComposition', function(req, res) {
 						return res.status(200).send(JSON.stringify({"error": err, "vm url": `https://${req.body.firebase_functions_host}${req.body.firebase_function}`}));
 					}
 					//console.log(err, body);
-					else return res.status(200).send(JSON.stringify({"result": "ok"}));
+					else {
+						let theResult = {"result": "downloadComposition complete", 
+						                 tempEditFolder:  tempEditFolder,
+										 compositionFile: compositionFile,
+										 CompositionSid: req.body.CompositionSid}
+						console.log('/downloadComposition:  ', theResult)
+						return res.status(200).send(JSON.stringify(theResult));
+					}
 				}
 			);
 
@@ -198,7 +325,7 @@ app.all('/cutVideo', function(req, res) {
 				return res.status(200).send(JSON.stringify({"error": err, "vm url": req.body.callbackUrl}));
 			}
 			//console.log(err, body);
-			else return res.status(200).send(JSON.stringify({"result": "ok"}));
+			else return res.status(200).send(JSON.stringify({"result": "cutVideo complete", "outputFile": outputFile}));
 		}
 	);
 
@@ -301,8 +428,8 @@ app.all('/createHls', async function(req, res) {
 					// can't send 500's back - twilio doesn't like that
 					return res.status(200).send(JSON.stringify({"error": err, "vm url": req.body.callbackUrl}));
 				}
-				//console.log(err, body);
-				else return res.status(200).send(JSON.stringify({"result": "ok"}));
+				// "body" in twilio-video.js:createHls()
+				else return res.status(200).send(JSON.stringify({"result": "createHls (vm)", "uploadFiles": uploadFiles}));
 			}
 		);
 		
@@ -326,6 +453,7 @@ app.all('/createHls', async function(req, res) {
 app.all('/uploadToFirebaseStorage', async function(req, res) {
 	//DON'T short-circuit anymore   if(true) return res.status(200).send(JSON.stringify({"result": "ok"})); // short-circuit this whole function
 
+	console.log('uploadToFirebaseStorage: begin')
     /**
 	 * Passed in from /createHlsComplete
 	  
@@ -356,7 +484,14 @@ app.all('/uploadToFirebaseStorage', async function(req, res) {
 		keyFilename: `/home/bdunklau/${req.body.storage_keyfile}`
 	});
 
+	let storageItems = []
 	let bucketName = `${req.body.projectId}.appspot.com`
+	
+    _.each(req.body.uploadFiles, async file => {
+		let folder = req.body.CompositionSid
+		storageItems.push({bucketName: bucketName, folder: folder, filename: file.name})
+	})
+
     _.each(req.body.uploadFiles, async file => {
 		// Uploads a local file to the bucket
 		let folder = req.body.CompositionSid
@@ -403,11 +538,18 @@ app.all('/uploadToFirebaseStorage', async function(req, res) {
 		},
 		function (err, httpResponse, body) {
 			if(err) {
+				console.log('uploadToFirebaseStorage: returning err: ', err)
 				// can't send 500's back - twilio doesn't like that
 				return res.status(200).send(JSON.stringify({"error": err, "vm url": req.body.callbackUrl}));
 			}
 			//console.log(err, body);
-			else return res.status(200).send(JSON.stringify({"result": "ok"}));
+			else {
+				console.log('uploadToFirebaseStorage: returning ok body: ', body)
+				return res.status(200).send(JSON.stringify({"body": body, 
+															 "result": "uploadToFirebaseStorage complete", 
+															 "uploadFiles": req.body.uploadFiles,
+															 "storageItems": storageItems}));
+			}
 		}
 	);
   
@@ -518,7 +660,13 @@ app.all('/uploadScreenshotToStorage', async function(req, res) {
 				return res.status(200).send(JSON.stringify({"error": err, "vm url": req.body.callbackUrl}));
 			}
 			//console.log(err, body);
-			else return res.status(200).send(JSON.stringify({"result": "ok"}));
+			else return res.status(200).send(JSON.stringify({"result": "uploadScreenshotToStorage complete", 
+															 "screenshotDetails": {
+																		 "bucketName": bucketName,
+																		 "folder": folder,
+																		 "filename": `${req.body.CompositionSid}.jpg`
+															         }
+															}));
 		}
 	);
 })
@@ -590,7 +738,7 @@ app.all('/deleteVideo', async function(req, res) {
 				// can't send 500's back - twilio doesn't like that
 				return res.status(200).send(JSON.stringify({"error": err, "vm url": req.body.callbackUrl}));
 			}
-			else return res.status(200).send(JSON.stringify({"result": "ok"}));
+			else return res.status(200).send(JSON.stringify({"result": "deleteVideo complete"}));
 		}
 	);
 })
@@ -599,11 +747,16 @@ app.all('/deleteVideo', async function(req, res) {
 
 app.all('/test', function(req, res) {
 	
-	res.status(200).send(JSON.stringify({"result": "ok"}))
+	res.status(200).send(JSON.stringify({"result": "/test complete", status: 200}))
 })
 
 
 
+
+app.all('/hi', function(req, res) {
+	
+	res.status(200).send(JSON.stringify({"hi": "hi"}))
+})
 
 
 
@@ -619,6 +772,18 @@ app.all('/download', function(req, res) {
 
 
 
+/**
+ * verifies that pm2 actually restarts the node process when it crashes
+ */
+app.all('/crash', function(req, res) {
+	console.log((new Date())+'you asked for a crash - you got !')
+	res.status(200).send(JSON.stringify({"crash": "crash"}))
+	process.exit(1/*= fatal*/)
+})
+
+
+
+
 
 app.all('/env', async function(req, res) {
     
@@ -626,8 +791,22 @@ app.all('/env', async function(req, res) {
 })
 
 
+/**
+ * yourvotecounts : admin.js : pingVm()
+ */
+app.all('/ping', function(req, res) {
+
+	return res.status(200).send(JSON.stringify({"up": true}))
+
+})
 
 
-app.listen(7000, function() {
-    console.log('app listening on port 7000')
+
+
+app.listen(7000, async function() {
+	console.log('app listening on port 7000')
+	let furl = 'https://us-central1-yourvotecounts-dev.cloudfunctions.net/pingVm'
+	const theResponse = await fetch(furl);
+	const html = await theResponse.text();
+	console.log(`HERE'S WHAT WE GOT BACK FROM ${furl}: ${html}`)
 })
