@@ -797,13 +797,13 @@ app.all('/env', async function(req, res) {
 app.all('/ping', function(req, res) {
 
 	setTimeout(async () => {
-		console.log((new Date())+' /ping called')
-		// yourvotecounts : admin.js : /pingVm
-		let callbackUrl = `https://${req.query.firebase_functions_host}/${req.query.function}`
-		console.log(`${new Date()} callback:  ${callbackUrl}`)
-		const theResponse = await fetch(callbackUrl);
-		const html = await theResponse.text();
-		console.log(`${new Date()} callback:  ${callbackUrl} - RESPONSE: ${html}`)
+		// console.log((new Date())+' /ping called')
+		// // yourvotecounts : admin.js : /pingVm
+		// let callbackUrl = `https://${req.query.firebase_functions_host}/${req.query.function}`
+		// console.log(`${new Date()} callback:  ${callbackUrl}`)
+		// const theResponse = await fetch(callbackUrl);
+		// const html = await theResponse.text();
+		// console.log(`${new Date()} callback:  ${callbackUrl} - RESPONSE: ${html}`)
 
 		return res.status(200).send(JSON.stringify({"ping": "ping back"}))
 
