@@ -753,7 +753,8 @@ app.all('/deleteVideo', async function(req, res) {
 
 app.all('/test', function(req, res) {
 	
-	res.status(200).send(JSON.stringify({"result": "/test complete", status: 200}))
+	res.status(200).send(JSON.stringify({"result": "/test complete", status: 200,
+										"code updated": "5/4/2021"}))
 })
 
 
