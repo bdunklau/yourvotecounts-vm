@@ -166,7 +166,8 @@ app.post('/downloadComposition', function(req, res) {
 	"Ttl": 3600, 
 	"firebase_functions_host": "xxxxxxxxx.cloudfunctions.net", 
 	"firebase_function": "/downloadComplete",
-     website_domain_name: req.query.website_domain_name
+	 website_domain_name: req.query.website_domain_name
+	 participantSid:  req.body.participantSid   OPTIONAL  https://headsupvideo.atlassian.net/browse/HEADSUP-105
     */
 
     var twilioUrl = `https://${req.body.twilio_account_sid}:${req.body.twilio_auth_token}@video.twilio.com${req.body.MediaUri}?Ttl=${req.body.Ttl}`
@@ -197,6 +198,7 @@ app.post('/downloadComposition', function(req, res) {
 				downloadComplete: true,
 				website_domain_name: req.body.website_domain_name
 			}
+			if(req.body.participantSid) formData['participantSid'] = req.body.participantSid
 			if(req.body.stop) formData['stop'] = true
 
 			request.post(
@@ -255,15 +257,19 @@ app.all('/cutVideo', function(req, res) {
 			compositionProgress: roomDoc.data()['compositionProgress'],
 			website_domain_name: req.body.website_domain_name,
             projectId: req.body.projectId,
-            storage_keyfile: req.body.storage_keyfile
+            storage_keyfile: req.body.storage_keyfile,
+	        participantSid:  req.body.participantSid   OPTIONAL  https://headsupvideo.atlassian.net/browse/HEADSUP-105
         }
 	******/
 
 	let mkdir = `mkdir ${req.body.tempEditFolder}`
 	console.log('req.body = ', req.body);
 	console.log('req.body.roomObj = ', req.body.roomObj);
+	let justGuest = req.body.participantSid ? true : false 
     let ffmpegCommands = _.map(req.body.roomObj['mark_time'], (timeStuff, index) => {
-		return `ffmpeg -i ${req.body.compositionFile} -ss ${timeStuff.start_recording} -t ${timeStuff.duration} ${req.body.tempEditFolder}/part${index}.mp4`
+		let startTime = timeStuff.start_recording
+		if(justGuest) startTime = timeStuff.start_recording_guest
+		return `ffmpeg -i ${req.body.compositionFile} -ss ${startTime} -t ${timeStuff.duration} ${req.body.tempEditFolder}/part${index}.mp4`
 	})
 	
 	/**
